@@ -1,0 +1,517 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+
+const HOODS = ["Upper East Side","Upper West Side","Midtown East","Midtown West","East Village","West Village","Lower East Side","SoHo / NoHo","Chelsea","Gramercy / Flatiron","Murray Hill","Hell's Kitchen","Harlem","Williamsburg","Greenpoint","Park Slope","DUMBO / Brooklyn Heights","Bushwick","Astoria"];
+const INTERESTS = ["Running","Cornhole","Volleyball","Basketball","Soccer","Climbing","Cycling","Hiking","Yoga","Boxing","Cooking","Wine & Spirits","Coffee","Live Music","Comedy","Film","Reading","Art & Museums","Photography","Board Games","Pickleball","Tennis","Bowling","Kickball","Pool"];
+const NIGHTS = ["Mon","Tue","Wed","Thu","Fri","Sat"];
+const NIGHT_FULL = {Mon:"Monday",Tue:"Tuesday",Wed:"Wednesday",Thu:"Thursday",Fri:"Friday",Sat:"Saturday"};
+const COHORT_NAMES = ["Birch","Cedar","Slate","Ridge","Brook","Alder","Fern","Stone","Linden","Aspen","Moss","Laurel","Rowan","Sage","Hazel","Ember","Thistle","Wren","Elm","Flint"];
+
+const VENUES = {
+  "Upper East Side":[{name:"The Penrose",addr:"1590 2nd Ave",beli:"the-penrose"},{name:"Jones Wood Foundry",addr:"401 E 76th St",beli:"jones-wood-foundry"}],
+  "Upper West Side":[{name:"The Dead Poet",addr:"450 Amsterdam Ave",beli:"the-dead-poet"}],
+  "East Village":[{name:"Alphabet City Beer Co.",addr:"96 Ave C",beli:"alphabet-city-beer-co"}],
+  "West Village":[{name:"The Ear Inn",addr:"326 Spring St",beli:"the-ear-inn"}],
+  "Chelsea":[{name:"Bathtub Gin",addr:"132 9th Ave",beli:"bathtub-gin"}],
+  "Gramercy / Flatiron":[{name:"Lillie's Victorian",addr:"13 E 17th St",beli:"lillies-victorian"}],
+  "Murray Hill":[{name:"The Ainsworth",addr:"122 E 28th St",beli:"the-ainsworth"}],
+};
+
+const C = {
+  bg:"#F5F2EA",card:"#FFFFFF",sand:"#D6D0C0",stone:"#938E82",bark:"#5C574D",forest:"#33302A",night:"#1A1815",
+  lake1:"#1B7A6E",lake2:"#2A6B8C",lakePale:"#E4F1EE",lakeFaint:"#F0F7F5",
+  wood:"#A07040",woodPale:"#FBF5EC",
+  accent:"#1B7A6E",
+};
+
+const sans = {fontFamily:"-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif"};
+const mono = {fontFamily:"'SF Mono','Fira Code',Consolas,monospace"};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+
+function matchUsers(allUsers){
+  const groups = {};
+  allUsers.forEach(u => {
+    if(!u.neighborhood || !u.nights?.length) return;
+    u.nights.forEach(n => {
+      const key = `${u.neighborhood}::${n}`;
+      if(!groups[key]) groups[key] = [];
+      groups[key].push(u);
+    });
+  });
+  const cohorts = [];
+  const assigned = new Set();
+  Object.entries(groups)
+    .sort((a,b) => b[1].length - a[1].length)
+    .forEach(([key, users]) => {
+      const available = users.filter(u => !assigned.has(u.id));
+      if(available.length >= 6){
+        const [hood, night] = key.split("::");
+        const take = available.slice(0, Math.min(12, available.length));
+        take.forEach(u => assigned.add(u.id));
+        const vList = VENUES[hood] || Object.values(VENUES)[0];
+        const venue = vList[Math.floor(Math.random()*vList.length)];
+        const name = COHORT_NAMES[cohorts.length % COHORT_NAMES.length];
+        cohorts.push({
+          id: `cohort-${uid()}`, name, number: `#${100+cohorts.length}`,
+          hood, night, venue,
+          memberIds: take.map(u=>u.id),
+          createdAt: new Date().toISOString(),
+        });
+      }
+    });
+  return cohorts;
+}
+
+const LakeSVG = () => (
+  <svg viewBox="0 0 800 420" style={{width:"100%",display:"block",marginBottom:-2}} preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="lk1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={C.lake1} stopOpacity="0.18"/>
+        <stop offset="100%" stopColor={C.lake1} stopOpacity="0.06"/>
+      </linearGradient>
+      <linearGradient id="lk2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={C.lake2} stopOpacity="0.18"/>
+        <stop offset="100%" stopColor={C.lake2} stopOpacity="0.06"/>
+      </linearGradient>
+      <linearGradient id="mtn" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={C.stone} stopOpacity="0.12"/>
+        <stop offset="100%" stopColor={C.stone} stopOpacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <path d="M0 180Q100 120 200 160Q280 190 320 170Q360 150 400 195Q440 150 480 170Q540 200 600 160Q700 120 800 180V420H0Z" fill="url(#lk1)"/>
+    <path d="M0 220Q80 280 180 250Q260 225 340 260Q400 285 460 255Q530 230 620 260Q720 290 800 240V420H0Z" fill="url(#lk2)"/>
+    <path d="M120 200L180 100L240 180L290 70L340 170L400 130L460 170L510 80L560 160L620 110L680 195" fill="none" stroke={C.stone} strokeWidth="0.8" strokeOpacity="0.15"/>
+  </svg>
+);
+
+export default function App(){
+  const [scr,setScr] = useState("landing");
+  const [me,setMe] = useState(null);
+  const [allUsers,setAllUsers] = useState([]);
+  const [allCohorts,setAllCohorts] = useState([]);
+  const [loading,setLoading] = useState(true);
+  const [form,setForm] = useState({name:"",age:"",neighborhood:"",bio:"",interests:[],nights:[],instagram:"",beli:""});
+  const [rsvps,setRsvps] = useState({});
+  const [openWeek,setOpenWeek] = useState(null);
+  const [tab,setTab] = useState("season");
+  const ref = useRef(null);
+
+  const go = (s) => {setScr(s); setTimeout(()=>ref.current?.scrollIntoView({behavior:"instant"}),10);};
+
+  const loadData = useCallback(async()=>{
+    try{
+      const sess = await window.storage.get("my-user-id");
+      let usersList = [];
+      try{
+        const uData = await window.storage.get("all-users", true);
+        if(uData?.value) usersList = JSON.parse(uData.value);
+      }catch(e){}
+      setAllUsers(usersList);
+      let cohortsList = [];
+      try{
+        const cData = await window.storage.get("all-cohorts", true);
+        if(cData?.value) cohortsList = JSON.parse(cData.value);
+      }catch(e){}
+      setAllCohorts(cohortsList);
+      if(sess?.value){
+        const found = usersList.find(u=>u.id===sess.value);
+        if(found){setMe(found); setScr("home");}
+      }
+    }catch(e){console.error(e);}
+    setLoading(false);
+  },[]);
+
+  useEffect(()=>{loadData();},[loadData]);
+
+  const saveUser = async(userData)=>{
+    try{
+      let users = [];
+      try{
+        const d = await window.storage.get("all-users",true);
+        if(d?.value) users = JSON.parse(d.value);
+      }catch(e){}
+      const idx = users.findIndex(u=>u.id===userData.id);
+      if(idx>=0) users[idx]=userData; else users.push(userData);
+      await window.storage.set("all-users",JSON.stringify(users),true);
+      await window.storage.set("my-user-id",userData.id);
+      setAllUsers(users);
+      setMe(userData);
+      const newCohorts = matchUsers(users);
+      if(newCohorts.length > 0){
+        let existing = [];
+        try{const c=await window.storage.get("all-cohorts",true);if(c?.value)existing=JSON.parse(c.value);}catch(e){}
+        const merged = [...existing,...newCohorts];
+        await window.storage.set("all-cohorts",JSON.stringify(merged),true);
+        setAllCohorts(merged);
+      }
+    }catch(e){console.error("Save error:",e);}
+  };
+
+  const signup = async()=>{
+    const userData = {id:uid(),name:form.name,age:parseInt(form.age),neighborhood:form.neighborhood,bio:form.bio,interests:form.interests,nights:form.nights,instagram:form.instagram,beli:form.beli,joinedAt:new Date().toISOString()};
+    await saveUser(userData);
+    go("home");
+  };
+
+  const updateProfile = async()=>{
+    if(!me) return;
+    const updated = {...me,name:form.name||me.name,bio:form.bio,interests:form.interests.length?form.interests:me.interests,nights:form.nights.length?form.nights:me.nights,instagram:form.instagram,beli:form.beli};
+    await saveUser(updated);
+    go("home");
+  };
+
+  const logout = async()=>{
+    try{await window.storage.delete("my-user-id");}catch(e){}
+    setMe(null); go("landing");
+  };
+
+  const myCohort = allCohorts.find(c=>c.memberIds?.includes(me?.id));
+  const cohortMembers = myCohort ? allUsers.filter(u=>myCohort.memberIds.includes(u.id)&&u.id!==me?.id) : [];
+  const hoodWaiting = allUsers.filter(u=>u.neighborhood===me?.neighborhood&&u.id!==me?.id&&!allCohorts.some(c=>c.memberIds.includes(u.id)));
+
+  const season = myCohort ? (()=>{
+    const start=new Date(2026,3,20);const dm={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+    while(start.getDay()!==dm[myCohort.night])start.setDate(start.getDate()+1);
+    return Array.from({length:8},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i*7);return{week:i+1,date:d.toLocaleDateString("en-US",{month:"long",day:"numeric"}),short:d.toLocaleDateString("en-US",{month:"short",day:"numeric"}),past:d<new Date()};});
+  })() : null;
+
+  const WCOPY=["First night. Everyone's new. Just show up.","Faces are familiar now. Names are sticking.","The ice breaks. Inside jokes start forming.","Halfway. The group has momentum.","People arrive without checking the app.","You know everyone's drink order.","Second-to-last. Plans start forming for after.","Final night. Keep the group or re-shuffle."];
+
+  const label = {...sans,fontSize:10.5,fontWeight:600,letterSpacing:"1.8px",textTransform:"uppercase",color:C.stone,marginBottom:10,display:"block"};
+  const input = {...sans,fontSize:16,padding:"14px 16px",background:"#fff",border:`1.5px solid ${C.sand}`,borderRadius:10,color:C.forest,width:"100%"};
+  const chip = (on)=>({...sans,fontSize:13,padding:"8px 18px",borderRadius:24,border:`1.5px solid ${on?C.lake1:C.sand}`,background:on?C.lakePale:"#fff",color:on?C.lake1:C.bark,fontWeight:on?500:400,transition:"all .15s"});
+  const btn = {...sans,fontSize:14,fontWeight:500,padding:"15px 36px",borderRadius:10,border:`1.5px solid ${C.lake1}`,background:C.lake1,color:"#fff",width:"100%",letterSpacing:"0.3px"};
+  const btnO = {...btn,background:"transparent",color:C.bark,borderColor:C.sand};
+  const card = {background:"#fff",border:`1px solid ${C.sand}30`,borderRadius:14,padding:"20px 22px",marginBottom:10};
+  const av = (hue,sz=42)=>({width:sz,height:sz,borderRadius:"50%",background:`hsl(${hue},28%,87%)`,display:"flex",alignItems:"center",justifyContent:"center",...sans,fontSize:sz*.36,fontWeight:600,color:`hsl(${hue},30%,38%)`,flexShrink:0});
+  const divider = {height:1,background:C.sand,opacity:.35,margin:"32px 0"};
+  const sTag = {...mono,fontSize:10,letterSpacing:"2.5px",color:C.lake1,textTransform:"uppercase",marginBottom:10};
+
+  const css = `
+    @keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fi{from{opacity:0}to{opacity:1}}
+    *{box-sizing:border-box;margin:0}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:${C.lake1}!important}
+    button{cursor:pointer;transition:all .15s}button:active{transform:scale(.98)}
+    ::selection{background:${C.lake1}22}
+    select option{background:${C.bg};color:${C.forest}}
+    textarea{resize:vertical}
+    .fu{animation:fu .55s ease both}
+    .chip:hover{border-color:${C.lake1}!important;color:${C.lake1}!important}
+    a{color:${C.lake1};text-decoration:none}a:hover{text-decoration:underline}
+  `;
+
+  if(loading) return <div style={{background:C.bg,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",...sans,color:C.stone}}>Loading...</div>;
+
+  return(
+    <div style={{background:C.bg,color:C.forest,minHeight:"100vh",fontFamily:"Georgia,'Times New Roman',serif"}}>
+      <style>{css}</style>
+      <div ref={ref}/>
+
+      {/* ═══ LANDING ═══ */}
+      {scr==="landing"&&<div>
+        <LakeSVG/>
+        <div style={{maxWidth:480,margin:"0 auto",padding:"0 28px 80px",textAlign:"center"}}>
+          <div style={{...mono,fontSize:10,letterSpacing:"3px",color:C.lake1,textTransform:"uppercase",marginBottom:16}} className="fu">Cohort</div>
+          <h1 style={{fontSize:36,fontWeight:400,lineHeight:1.15,color:C.night,marginBottom:16,letterSpacing:"-.5px",animation:"fu .7s ease .15s both"}}>
+            Community forms<br/>in the space between.
+          </h1>
+          <p style={{...sans,fontSize:15,color:C.stone,lineHeight:1.7,marginBottom:40,maxWidth:360,margin:"0 auto 40px",animation:"fu .7s ease .3s both"}}>
+            A small group. Your neighborhood. Same night, every week, for eight weeks. That's it.
+          </p>
+          <div style={{animation:"fu .7s ease .45s both"}}>
+            <button style={btn} onClick={()=>go("signup")}>Join a cohort</button>
+          </div>
+          <div style={{...sans,fontSize:12,color:C.stone,marginTop:14,animation:"fu .7s ease .55s both"}}>
+            {allUsers.length} people signed up &middot; {allCohorts.length} cohorts formed
+          </div>
+          <div style={{...sans,fontSize:12,color:C.stone,marginTop:24,animation:"fu .7s ease .65s both"}}>
+            <button style={{...sans,fontSize:12,color:C.lake1,background:"none",border:"none",textDecoration:"underline"}} onClick={()=>go("about")}>How it works</button>
+          </div>
+        </div>
+      </div>}
+
+      {/* ═══ ABOUT ═══ */}
+      {scr==="about"&&<div style={{maxWidth:520,margin:"0 auto",padding:"56px 28px 80px"}}>
+        <div style={sTag} className="fu">About</div>
+        <h2 style={{fontSize:26,fontWeight:400,color:C.night,marginBottom:16}} className="fu">Why this exists</h2>
+        <div style={{...sans,fontSize:14.5,color:C.bark,lineHeight:1.75}}>
+          <p style={{marginBottom:16,animation:"fu .5s ease .1s both"}}>Community used to be the default. You knew your neighbors because you saw them every day. You made friends because you showed up to the same places with the same people, week after week, until familiarity became friendship.</p>
+          <p style={{marginBottom:16,animation:"fu .5s ease .2s both"}}>That infrastructure is gone. The market response has been to monetize the loneliness gap \u2014 dating apps, networking apps, event ticketing platforms. They optimize for engagement, not connection. They give you a different room of strangers every time.</p>
+          <p style={{marginBottom:16,animation:"fu .5s ease .3s both"}}>Cohort does one thing: it puts you in a small group of people in your neighborhood, assigns you a night and a venue, and gets out of the way. Same faces. Same place. Every week. For eight weeks.</p>
+          <p style={{marginBottom:24,animation:"fu .5s ease .4s both"}}>The research is clear: friendships form through repeated, unplanned interaction and shared vulnerability. We manufacture the conditions. You do the rest.</p>
+        </div>
+        <div style={divider}/>
+        <div style={{...sans,fontSize:14,fontWeight:500,color:C.night,marginBottom:16}}>The rules</div>
+        {["No profiles to browse. No swiping. No DMs.","No algorithmic compatibility scores.","No in-app chat. No feed. No content.","The success metric is churn \u2014 groups that don't need us anymore.","Your data is your name, neighborhood, and interests. Nothing else."].map((r,i)=>(
+          <div key={i} style={{display:"flex",gap:12,marginBottom:12,...sans,fontSize:13.5,color:C.bark,animation:`fu .4s ease ${.5+i*.08}s both`}}>
+            <span style={{color:C.lake1,flexShrink:0}}>-</span><span>{r}</span>
+          </div>
+        ))}
+        <div style={divider}/>
+        <button style={btn} onClick={()=>go(me?"home":"signup")}>{me?"Back to home":"Join a cohort"}</button>
+        <div style={{textAlign:"center",marginTop:14}}>
+          <button style={{...sans,fontSize:13,color:C.stone,background:"none",border:"none"}} onClick={()=>go("landing")}>Back</button>
+        </div>
+      </div>}
+
+      {/* ═══ SIGNUP ═══ */}
+      {scr==="signup"&&<div style={{maxWidth:520,margin:"0 auto",padding:"56px 28px 80px"}}>
+        <div style={sTag} className="fu">Create your profile</div>
+        <h2 style={{fontSize:26,fontWeight:400,color:C.night,marginBottom:8}} className="fu">Tell us enough to place you</h2>
+        <p style={{...sans,fontSize:14.5,color:C.stone,lineHeight:1.65,marginBottom:32,animation:"fu .5s ease .1s both"}}>This takes two minutes. No photos required. No last names. Just enough for us to match you with the right group.</p>
+
+        <div style={{marginBottom:22,animation:"fu .5s ease .15s both"}}>
+          <label style={label}>First name *</label>
+          <input style={input} placeholder="What your cohort will call you" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+        </div>
+        <div style={{marginBottom:22,animation:"fu .5s ease .2s both"}}>
+          <label style={label}>Age *</label>
+          <input style={input} type="number" placeholder="21 – 34" min={21} max={34} value={form.age} onChange={e=>setForm(f=>({...f,age:e.target.value}))}/>
+        </div>
+        <div style={{marginBottom:22,animation:"fu .5s ease .25s both"}}>
+          <label style={label}>Neighborhood *</label>
+          <select style={{...input,appearance:"none"}} value={form.neighborhood} onChange={e=>setForm(f=>({...f,neighborhood:e.target.value}))}>
+            <option value="">Select</option>
+            {HOODS.map(n=><option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+        <div style={{marginBottom:22,animation:"fu .5s ease .3s both"}}>
+          <label style={label}>About you</label>
+          <textarea style={{...input,minHeight:72}} placeholder="One or two lines. Where you're from, what you do, why you're here." value={form.bio} onChange={e=>setForm(f=>({...f,bio:e.target.value}))}/>
+        </div>
+
+        <div style={divider}/>
+
+        <div style={{animation:"fu .5s ease .35s both"}}>
+          <label style={label}>Interests * (pick 3-5)</label>
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:32,animation:"fu .5s ease .38s both"}}>
+          {INTERESTS.map(x=><button key={x} className="chip" style={chip(form.interests.includes(x))} onClick={()=>setForm(f=>({...f,interests:f.interests.includes(x)?f.interests.filter(i=>i!==x):f.interests.length<5?[...f.interests,x]:f.interests}))}>{x}</button>)}
+        </div>
+
+        <div style={{animation:"fu .5s ease .42s both"}}>
+          <label style={label}>Available nights * (select all that work)</label>
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:32,animation:"fu .5s ease .45s both"}}>
+          {NIGHTS.map(x=><button key={x} className="chip" style={{...chip(form.nights.includes(x)),minWidth:70,textAlign:"center"}} onClick={()=>setForm(f=>({...f,nights:f.nights.includes(x)?f.nights.filter(i=>i!==x):[...f.nights,x]}))}>{x}</button>)}
+        </div>
+
+        <div style={divider}/>
+        <div style={{...sans,fontSize:14,fontWeight:500,color:C.night,marginBottom:16,animation:"fu .5s ease .48s both"}}>Social links <span style={{fontWeight:400,color:C.stone,fontSize:12}}>(optional)</span></div>
+        <div style={{marginBottom:22,animation:"fu .5s ease .5s both"}}>
+          <label style={label}>Instagram handle</label>
+          <input style={input} placeholder="@yourhandle" value={form.instagram} onChange={e=>setForm(f=>({...f,instagram:e.target.value}))}/>
+        </div>
+        <div style={{marginBottom:32,animation:"fu .5s ease .52s both"}}>
+          <label style={label}>Beli username</label>
+          <input style={input} placeholder="For restaurant recs and reservations" value={form.beli} onChange={e=>setForm(f=>({...f,beli:e.target.value}))}/>
+          <div style={{...sans,fontSize:12,color:C.stone,marginTop:6}}>
+            <a href="https://bfrnd.link/download" target="_blank" rel="noopener">Get Beli</a> &mdash; we use it for venue reservations and food recs.
+          </div>
+        </div>
+
+        <button style={{...btn,...(!form.name||!form.age||form.age<21||form.age>34||!form.neighborhood||form.interests.length<3||form.nights.length<1?{opacity:.3,pointerEvents:"none"}:{})}} onClick={signup}>
+          Join the waitlist
+        </button>
+        <div style={{textAlign:"center",marginTop:14}}>
+          <button style={{...sans,fontSize:13,color:C.stone,background:"none",border:"none"}} onClick={()=>go("landing")}>Back</button>
+        </div>
+      </div>}
+
+      {/* ═══ HOME ═══ */}
+      {scr==="home"&&me&&<div style={{maxWidth:520,margin:"0 auto",padding:"40px 28px 80px"}}>
+        {/* Nav */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:32}}>
+          <div style={sTag}>Cohort</div>
+          <div style={{display:"flex",gap:16}}>
+            <button style={{...sans,fontSize:12,color:C.lake1,background:"none",border:"none",fontWeight:500}} onClick={()=>go("about")}>About</button>
+            <button style={{...sans,fontSize:12,color:C.lake1,background:"none",border:"none",fontWeight:500}} onClick={()=>{setForm({name:me.name,age:String(me.age),neighborhood:me.neighborhood,bio:me.bio||"",interests:me.interests,nights:me.nights,instagram:me.instagram||"",beli:me.beli||""});go("profile");}}>Profile</button>
+          </div>
+        </div>
+
+        <h2 style={{fontSize:24,fontWeight:400,color:C.night,marginBottom:6}} className="fu">Hey, {me.name}.</h2>
+
+        {/* ─ MATCHED ─ */}
+        {myCohort ? <>
+          <p style={{...sans,fontSize:14,color:C.stone,marginBottom:28,animation:"fu .5s ease .1s both"}}>
+            You're in Cohort {myCohort.name} {myCohort.number}. {NIGHT_FULL[myCohort.night]}s at {myCohort.venue.name}.
+          </p>
+
+          {/* Tabs */}
+          <div style={{display:"flex",gap:0,marginBottom:24,borderBottom:`1.5px solid ${C.sand}40`}}>
+            {["season","cohort","overlap"].map(t=>(
+              <button key={t} style={{...sans,fontSize:13,fontWeight:tab===t?500:400,color:tab===t?C.lake1:C.stone,background:"none",border:"none",borderBottom:tab===t?`2px solid ${C.lake1}`:"2px solid transparent",padding:"10px 18px",marginBottom:-1.5,transition:"all .15s"}} onClick={()=>setTab(t)}>
+                {t==="season"?"Schedule":t==="cohort"?"Members":"Overlap"}
+              </button>
+            ))}
+          </div>
+
+          {tab==="season"&&season&&<div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:24}}>
+              {[{l:"Members",v:myCohort.memberIds.length},{l:"Weeks left",v:season.filter(w=>!w.past).length},{l:"Going",v:`${Object.values(rsvps).filter(s=>s==="going").length}/8`}].map((s,i)=>(
+                <div key={i} style={{...card,textAlign:"center",padding:"16px 10px"}}>
+                  <div style={{...sans,fontSize:10,color:C.stone,textTransform:"uppercase",letterSpacing:"1px",marginBottom:5}}>{s.l}</div>
+                  <div style={{...sans,fontSize:22,fontWeight:500,color:C.night}}>{s.v}</div>
+                </div>
+              ))}
+            </div>
+            {season.map((w,i)=>{
+              const going=rsvps[w.week]==="going";
+              const open=openWeek===w.week;
+              return<div key={w.week}>
+                <div style={{...card,display:"flex",alignItems:"center",justifyContent:"space-between",opacity:w.past?.4:1,borderLeft:`3px solid ${going?C.lake1:open?C.wood:"transparent"}`,borderRadius:0,borderTopRightRadius:14,borderBottomRightRadius:14,cursor:"pointer"}} onClick={()=>setOpenWeek(open?null:w.week)}>
+                  <div style={{display:"flex",alignItems:"center",gap:14}}>
+                    <div style={{...mono,fontSize:11,color:w.past?C.stone:C.lake1,width:28,textAlign:"center",flexShrink:0}}>W{w.week}</div>
+                    <div>
+                      <div style={{...sans,fontSize:14,color:w.past?C.stone:C.forest,fontWeight:500}}>{NIGHT_FULL[myCohort.night]}, {w.short}</div>
+                      <div style={{...sans,fontSize:12,color:C.stone}}>{myCohort.venue.name} &middot; 7:30 PM</div>
+                    </div>
+                  </div>
+                  {!w.past&&<button style={{...sans,fontSize:12,fontWeight:500,padding:"7px 18px",borderRadius:20,border:`1.5px solid ${going?C.lake1:C.sand}`,background:going?C.lakePale:"transparent",color:going?C.lake1:C.stone}} onClick={e=>{e.stopPropagation();setRsvps(s=>({...s,[w.week]:s[w.week]==="going"?null:"going"}));}}>
+                    {going?"Going":"RSVP"}
+                  </button>}
+                </div>
+                {open&&!w.past&&<div style={{...card,background:C.lakeFaint,marginTop:-6,borderRadius:"0 0 14px 14px",animation:"fi .3s ease both"}}>
+                  <div style={{...sans,fontSize:13,fontWeight:500,color:C.lake1,marginBottom:6}}>Week {w.week} &mdash; {w.date}</div>
+                  <div style={{...sans,fontSize:13,color:C.bark,lineHeight:1.65}}>{WCOPY[w.week-1]}</div>
+                  {myCohort.venue.beli&&<div style={{...sans,fontSize:12,marginTop:10}}>
+                    <a href={`https://bfrnd.link/${myCohort.venue.beli}`} target="_blank" rel="noopener">Reserve on Beli &rarr;</a>
+                  </div>}
+                </div>}
+              </div>;
+            })}
+          </div>}
+
+          {tab==="cohort"&&<div>
+            <div style={{...card,display:"flex",alignItems:"center",gap:14}}>
+              <div style={{...av(155),background:C.lakePale,color:C.lake1}}>{me.name[0]}</div>
+              <div style={{flex:1}}>
+                <div style={{...sans,fontSize:14,fontWeight:500,color:C.night}}>{me.name} <span style={{fontWeight:400,color:C.stone,fontSize:12}}>you</span></div>
+                <div style={{...sans,fontSize:12,color:C.stone}}>{me.bio||me.interests.join(" \u00B7 ")}</div>
+                <div style={{display:"flex",gap:10,marginTop:6}}>
+                  {me.instagram&&<a href={`https://instagram.com/${me.instagram.replace("@","")}`} target="_blank" rel="noopener" style={{...sans,fontSize:11,color:C.lake1}}>IG</a>}
+                  {me.beli&&<a href={`https://bfrnd.link/${me.beli}`} target="_blank" rel="noopener" style={{...sans,fontSize:11,color:C.lake1}}>Beli</a>}
+                </div>
+              </div>
+            </div>
+            {cohortMembers.map((m,i)=>(
+              <div key={m.id} style={{...card,display:"flex",alignItems:"center",gap:14}}>
+                <div style={av((i*47+120)%360)}>{m.name[0]}</div>
+                <div style={{flex:1}}>
+                  <div style={{...sans,fontSize:14,fontWeight:500,color:C.night}}>{m.name}, {m.age}</div>
+                  <div style={{...sans,fontSize:12.5,color:C.stone,lineHeight:1.5}}>{m.bio||m.interests.join(" \u00B7 ")}</div>
+                  <div style={{display:"flex",gap:10,marginTop:6}}>
+                    {m.instagram&&<a href={`https://instagram.com/${m.instagram.replace("@","")}`} target="_blank" rel="noopener" style={{...sans,fontSize:11,color:C.lake1}}>IG</a>}
+                    {m.beli&&<a href={`https://bfrnd.link/${m.beli}`} target="_blank" rel="noopener" style={{...sans,fontSize:11,color:C.lake1}}>Beli</a>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>}
+
+          {tab==="overlap"&&<div>
+            <div style={{...sans,fontSize:13,color:C.stone,marginBottom:20,lineHeight:1.6}}>How your interests overlap across the cohort.</div>
+            {me.interests.map((int,idx)=>{
+              const ct=cohortMembers.filter(m=>m.interests?.includes(int)).length;
+              const pct=cohortMembers.length?Math.round(ct/cohortMembers.length*100):0;
+              return<div key={int} style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+                <div style={{...sans,fontSize:13,color:C.bark,width:110,flexShrink:0}}>{int}</div>
+                <div style={{flex:1,height:7,background:C.sand+"40",borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${C.lake1},${C.lake2})`,borderRadius:4,transition:"width .6s ease"}}/>
+                </div>
+                <div style={{...sans,fontSize:12,color:C.stone,width:44,textAlign:"right"}}>{ct}/{cohortMembers.length}</div>
+              </div>;
+            })}
+          </div>}
+
+        </> : <>
+          {/* ─ WAITING ─ */}
+          <p style={{...sans,fontSize:14.5,color:C.stone,lineHeight:1.65,marginBottom:28,animation:"fu .5s ease .1s both"}}>
+            You're on the list for <strong style={{color:C.forest}}>{me.neighborhood}</strong>. We form cohorts when 6 or more people in the same neighborhood share an available night.
+          </p>
+
+          <div style={{...card,animation:"fu .5s ease .2s both"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+              <div style={{...sans,fontSize:14,fontWeight:500,color:C.night}}>Waitlist status</div>
+              <div style={{...sans,fontSize:12,padding:"4px 12px",borderRadius:10,background:C.lakePale,color:C.lake1,fontWeight:500}}>Waiting</div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+              <div>
+                <div style={{...sans,fontSize:11,color:C.stone,marginBottom:4}}>In your neighborhood</div>
+                <div style={{...sans,fontSize:24,fontWeight:500,color:C.night}}>{hoodWaiting.length + 1}</div>
+              </div>
+              <div>
+                <div style={{...sans,fontSize:11,color:C.stone,marginBottom:4}}>Need for a cohort</div>
+                <div style={{...sans,fontSize:24,fontWeight:500,color:C.night}}>6</div>
+              </div>
+            </div>
+            <div style={{marginTop:16,...sans,fontSize:13,color:C.stone,lineHeight:1.6}}>
+              {hoodWaiting.length+1>=6
+                ? "There are enough people for a cohort. Matching will happen soon."
+                : `${6-hoodWaiting.length-1} more people needed in ${me.neighborhood}. Share this with friends nearby.`
+              }
+            </div>
+          </div>
+
+          <div style={{...card,marginTop:10,animation:"fu .5s ease .3s both"}}>
+            <div style={{...sans,fontSize:14,fontWeight:500,color:C.night,marginBottom:12}}>Your profile</div>
+            <div style={{...sans,fontSize:13,color:C.bark,lineHeight:1.6}}>
+              <div><strong>Neighborhood:</strong> {me.neighborhood}</div>
+              <div><strong>Interests:</strong> {me.interests.join(", ")}</div>
+              <div><strong>Nights:</strong> {me.nights.map(n=>NIGHT_FULL[n]).join(", ")}</div>
+              {me.bio&&<div style={{marginTop:8,fontStyle:"italic",color:C.stone}}>"{me.bio}"</div>}
+            </div>
+          </div>
+
+          <div style={{...sans,fontSize:12,color:C.stone,textAlign:"center",marginTop:20,lineHeight:1.7,animation:"fu .5s ease .4s both"}}>
+            Know someone in {me.neighborhood}? The fastest way to get matched is to get your neighbors to sign up.
+          </div>
+        </>}
+      </div>}
+
+      {/* ═══ PROFILE / EDIT ═══ */}
+      {scr==="profile"&&me&&<div style={{maxWidth:520,margin:"0 auto",padding:"56px 28px 80px"}}>
+        <div style={sTag} className="fu">Your profile</div>
+        <h2 style={{fontSize:24,fontWeight:400,color:C.night,marginBottom:24}} className="fu">Edit your details</h2>
+
+        <div style={{marginBottom:22}}>
+          <label style={label}>Name</label>
+          <input style={input} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+        </div>
+        <div style={{marginBottom:22}}>
+          <label style={label}>Neighborhood</label>
+          <div style={{...sans,fontSize:14,color:C.stone,padding:"14px 0"}}>{me.neighborhood} <span style={{fontSize:12}}>(locked after signup)</span></div>
+        </div>
+        <div style={{marginBottom:22}}>
+          <label style={label}>About you</label>
+          <textarea style={{...input,minHeight:72}} value={form.bio} onChange={e=>setForm(f=>({...f,bio:e.target.value}))}/>
+        </div>
+        <div style={{marginBottom:8}}><label style={label}>Interests ({form.interests.length}/5)</label></div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28}}>
+          {INTERESTS.map(x=><button key={x} className="chip" style={chip(form.interests.includes(x))} onClick={()=>setForm(f=>({...f,interests:f.interests.includes(x)?f.interests.filter(i=>i!==x):f.interests.length<5?[...f.interests,x]:f.interests}))}>{x}</button>)}
+        </div>
+        <div style={{marginBottom:8}}><label style={label}>Available nights</label></div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28}}>
+          {NIGHTS.map(x=><button key={x} className="chip" style={{...chip(form.nights.includes(x)),minWidth:70,textAlign:"center"}} onClick={()=>setForm(f=>({...f,nights:f.nights.includes(x)?f.nights.filter(i=>i!==x):[...f.nights,x]}))}>{x}</button>)}
+        </div>
+        <div style={divider}/>
+        <div style={{...sans,fontSize:14,fontWeight:500,color:C.night,marginBottom:16}}>Social links</div>
+        <div style={{marginBottom:22}}>
+          <label style={label}>Instagram</label>
+          <input style={input} placeholder="@handle" value={form.instagram} onChange={e=>setForm(f=>({...f,instagram:e.target.value}))}/>
+        </div>
+        <div style={{marginBottom:28}}>
+          <label style={label}>Beli</label>
+          <input style={input} placeholder="username" value={form.beli} onChange={e=>setForm(f=>({...f,beli:e.target.value}))}/>
+        </div>
+        <button style={btn} onClick={updateProfile}>Save changes</button>
+        <div style={divider}/>
+        <button style={{...sans,fontSize:13,color:"#b44",background:"none",border:"none",width:"100%",textAlign:"center",padding:12}} onClick={logout}>Log out</button>
+        <div style={{textAlign:"center",marginTop:8}}>
+          <button style={{...sans,fontSize:13,color:C.stone,background:"none",border:"none"}} onClick={()=>go("home")}>Back</button>
+        </div>
+      </div>}
+    </div>
+  );
+}
