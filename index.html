@@ -3,167 +3,212 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Cohort</title>
-<meta name="description" content="A new institution for belonging.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.86em' font-size='90'>◉</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Albert+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Cohort ✦ Find your people</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.86em' font-size='90'>✦</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Albert Sans',sans-serif;background:#0C0B09;color:#D4CFC4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-::selection{background:#4A7C5930}
-a{color:#7BAF8B;text-decoration:none}a:hover{text-decoration:underline}
-button{cursor:pointer;border:none;background:none;font-family:inherit;transition:all .15s}
-button:active{transform:scale(.98)}
-input,select,textarea{font-family:'Albert Sans',sans-serif;background:#141310;border:1px solid #2A2820;color:#D4CFC4;padding:14px 16px;font-size:15px;width:100%;border-radius:0;-webkit-appearance:none}
-input:focus,select:focus,textarea:focus{outline:none;border-color:#4A7C59}
+body{font-family:'DM Sans',-apple-system,sans-serif;background:#FFFBF5;color:#2D2418;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:#2D7A4E30}
+a{color:#2D7A4E;text-decoration:none;font-weight:600}
+button{cursor:pointer;border:none;background:none;font-family:inherit;transition:all .2s}
+button:active{transform:scale(.96)}
+input,select,textarea{font-family:inherit;background:#fff;border:2px solid #E8E0D4;color:#2D2418;padding:14px 16px;font-size:15px;width:100%;border-radius:14px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#2D7A4E;box-shadow:0 0 0 4px #2D7A4E18}
 textarea{resize:vertical}
-select option{background:#141310;color:#D4CFC4}
-@keyframes enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+select{-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 16px center}
+@keyframes popIn{0%{opacity:0;transform:scale(.92) translateY(12px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
-.enter{animation:enter .5s ease both}
-.spinner{width:18px;height:18px;border:2px solid #2A2820;border-top-color:#4A7C59;border-radius:50%;animation:spin .6s linear infinite}
-
-/* ─── NAV ─── */
-.nav{position:fixed;bottom:0;left:0;right:0;background:#0C0B09ee;backdrop-filter:blur(12px);border-top:1px solid #1A1916;display:flex;z-index:100;padding:0 0 max(4px,env(safe-area-inset-bottom))}
-.nav button{flex:1;padding:14px 0 10px;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#5A5548;font-weight:500}
-.nav button.on{color:#7BAF8B}
+.pop{animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both}
+.spinner{width:20px;height:20px;border:3px solid #E8E0D4;border-top-color:#2D7A4E;border-radius:50%;animation:spin .6s linear infinite}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#FFFBF5F0;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:2px solid #F0EBE2;display:flex;z-index:100;padding:6px 8px max(6px,env(safe-area-inset-bottom))}
+.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;font-size:10px;font-weight:600;color:#B8AD9E;letter-spacing:.3px;border-radius:12px}
+.bnav button.on{color:#2D7A4E;background:#2D7A4E10}
+.bnav svg{width:22px;height:22px}
+.err-banner{background:#FFE8E8;border:2px solid #FF6B6B40;border-radius:14px;padding:14px 18px;margin:12px 0;font-size:13px;color:#CC3333;font-weight:500}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-// ═══ CONFIG ═══
+// ═══ SUPABASE CONFIG ═══
 const SB_URL="https://bsfqjceduhktevjswalm.supabase.co";
 const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZnFqY2VkdWhrdGV2anN3YWxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTgxNTMsImV4cCI6MjA5MTc5NDE1M30.N_3VvoUjm9Nz9swNm9KmYTz-RQDEZn186dz1AGh__kw";
-let sb=null;try{if(SB_URL&&!SB_URL.startsWith("YOUR"))sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+let sb=null;
+try{sb=window.supabase.createClient(SB_URL,SB_KEY);console.log("✅ Supabase client created");}catch(e){console.error("❌ Supabase client failed:",e);}
 
 const{useState,useEffect,useCallback,useRef,useMemo}=React;
 
-// ═══ DESIGN SYSTEM — Civic Institution ═══
-// Not a startup. An institution.
+// ═══ PALETTE ═══
 const C={
-  bg:"#0C0B09",       // near-black warm
-  surface:"#141310",   // panel bg
-  line:"#1A1916",      // borders — barely there
-  lineL:"#2A2820",     // stronger border
-  muted:"#5A5548",     // tertiary text
-  text:"#9B9488",      // secondary text
-  body:"#D4CFC4",      // primary text — bone
-  bright:"#F0EDE5",    // headlines — parchment
-  green:"#4A7C59",     // signal — oxidized green
-  greenL:"#7BAF8B",    // lighter green
-  greenBg:"#4A7C5912", // faint green bg
-  brass:"#B8963E",     // accent — brass/saffron
-  brassBg:"#B8963E12",
-  wine:"#8B4049",      // danger — deep wine
-  wineBg:"#8B404912",
+  bg:"#FFFBF5",cream:"#FFF8EE",white:"#FFFFFF",
+  green:"#2D7A4E",greenLight:"#4CAF72",greenPale:"#E3F5E9",greenVivid:"#22C55E",
+  brown:"#8B6914",brownLight:"#D4A843",brownPale:"#FFF3D6",
+  coral:"#FF6B6B",coralPale:"#FFE8E8",
+  purple:"#7C5CFC",purplePale:"#EDE8FF",
+  ink:"#2D2418",text:"#5C4F3D",muted:"#A69B8B",faint:"#D4CCBE",
+  border:"#F0EBE2",borderD:"#E0D8CA",
+  grad1:"linear-gradient(135deg,#2D7A4E 0%,#4CAF72 50%,#22C55E 100%)",
+  grad2:"linear-gradient(135deg,#8B6914 0%,#D4A843 100%)",
+  grad3:"linear-gradient(135deg,#FF6B6B 0%,#FF8E53 100%)",
+  grad4:"linear-gradient(135deg,#7C5CFC 0%,#B794F4 100%)",
 };
 
-// Typography
-const display={fontFamily:"'Newsreader',Georgia,serif"};
-const body={fontFamily:"'Albert Sans',-apple-system,sans-serif"};
-const mono={fontFamily:"'JetBrains Mono',monospace"};
-
-// ═══ CONSTANTS ═══
+// ═══ DATA ═══
 const HOODS=["Upper East Side","Upper West Side","Midtown East","Midtown West","East Village","West Village","Lower East Side","SoHo / NoHo","Chelsea","Gramercy / Flatiron","Murray Hill","Hell's Kitchen","Harlem","Washington Heights","Williamsburg","Greenpoint","Park Slope","DUMBO / Brooklyn Heights","Bushwick","Astoria"];
 const INTERESTS=["Running","Cornhole","Volleyball","Basketball","Soccer","Climbing","Cycling","Hiking","Yoga","Boxing","Cooking","Wine","Coffee","Live Music","Comedy","Film","Reading","Art","Photography","Board Games","Pickleball","Tennis","Bowling","Kickball","Pool"];
 const NIGHTS=["Mon","Tue","Wed","Thu","Fri","Sat"];
 const NF={Mon:"Monday",Tue:"Tuesday",Wed:"Wednesday",Thu:"Thursday",Fri:"Friday",Sat:"Saturday"};
 const CNAMES=["Birch","Cedar","Slate","Ridge","Brook","Alder","Fern","Stone","Linden","Aspen","Moss","Laurel","Rowan","Sage","Hazel","Ember","Thistle","Wren","Elm","Flint"];
-
-const STAGES=[{id:"new-to-city",l:"New to the city"},{id:"early-career",l:"Early career"},{id:"grad-school",l:"Grad school"},{id:"immigrant",l:"Immigrant / expat"},{id:"rebuilding",l:"Fresh start"},{id:"creative",l:"Creative / freelance"},{id:"established",l:"Established"},{id:"faith",l:"Faith-oriented"}];
-const INTENTIONS=[{id:"deep-friends",l:"Deep friendships"},{id:"activity-crew",l:"Activity partners"},{id:"dinner-circle",l:"Dinner circle"},{id:"newcomer",l:"Newcomer support"},{id:"cultural",l:"Cultural community"},{id:"mens",l:"Men's group"},{id:"womens",l:"Women's group"},{id:"mixed",l:"Surprise me"}];
-const CULTURAL=[{id:"low-drinking",l:"Low / no drinking"},{id:"family-style",l:"Family-style"},{id:"faith-friendly",l:"Faith-friendly"},{id:"multilingual",l:"Multilingual"},{id:"same-gender",l:"Same-gender"},{id:"introverted",l:"Introvert-friendly"},{id:"eastern",l:"Eastern social style"}];
-const COSTS=[{id:"free",l:"Free only"},{id:"under-10",l:"Under $10"},{id:"under-20",l:"Under $20"},{id:"flexible",l:"Flexible"},{id:"host",l:"Rotating host"}];
-
-const RITUALS=[
-  {w:1,t:"Origin stories",p:"Where are you from — not the city, the feeling of home.",trust:"Names only. Socials unlock week 2."},
-  {w:2,t:"What brought you here",p:"Why this city? What surprised you?",trust:"Socials now visible."},
-  {w:3,t:"What you're building",p:"What are you working toward? What's missing?",trust:"You can invite a guest."},
-  {w:4,t:"Show and tell",p:"Bring something. A photo, an object, a song. Share why."},
-  {w:5,t:"Recommendations",p:"Give the group your #1 recommendation. Anything."},
-  {w:6,t:"One honest thing",p:"One challenge this month. Nothing performative."},
-  {w:7,t:"Host someone",p:"Invite someone from outside. Show them what you built."},
-  {w:8,t:"What continues",p:"Last organized week. What survives? Exchange real info."},
-];
-
-const VENUES={
-  "Upper East Side":[{name:"The Penrose",addr:"1590 2nd Ave",beli:"the-penrose",type:"bar"},{name:"Central Park, E 72nd",addr:"E 72nd & 5th Ave",beli:"",type:"park"}],
-  "Upper West Side":[{name:"The Dead Poet",addr:"450 Amsterdam Ave",beli:"the-dead-poet",type:"bar"},{name:"Riverside Park",addr:"W 72nd",beli:"",type:"park"}],
-  "East Village":[{name:"Alphabet City Beer Co.",addr:"96 Ave C",beli:"alphabet-city-beer-co",type:"bar"},{name:"Tompkins Square",addr:"E 7th & Ave A",beli:"",type:"park"}],
-  "West Village":[{name:"The Ear Inn",addr:"326 Spring St",beli:"the-ear-inn",type:"bar"}],
-  "Chelsea":[{name:"The High Line",addr:"14th St entrance",beli:"",type:"park"}],
-  "Gramercy / Flatiron":[{name:"Old Town Bar",addr:"45 E 18th St",beli:"old-town-bar",type:"bar"}],
-  "Williamsburg":[{name:"Domino Park",addr:"15 River St",beli:"",type:"park"}],
-  "Park Slope":[{name:"Prospect Park",addr:"Grand Army Plaza",beli:"",type:"park"}],
-  "Harlem":[{name:"Harlem Hops",addr:"2268 ACP Blvd",beli:"harlem-hops",type:"bar"}],
-};
+const STAGES=[{id:"new-to-city",l:"New to the city",e:"🗽"},{id:"early-career",l:"Early career",e:"💼"},{id:"grad-school",l:"Grad school",e:"📖"},{id:"immigrant",l:"Immigrant / expat",e:"🌍"},{id:"rebuilding",l:"Fresh start",e:"🌱"},{id:"creative",l:"Creative / freelance",e:"🎨"},{id:"established",l:"Established",e:"🏡"},{id:"faith",l:"Faith-oriented",e:"🕊️"}];
+const INTENTIONS=[{id:"deep-friends",l:"Deep friendships",e:"💛",d:"People I'd actually call at 2am"},{id:"activity-crew",l:"Activity crew",e:"🏃",d:"A crew that does stuff together"},{id:"dinner-circle",l:"Dinner circle",e:"🍽️",d:"Weekly meals, real conversation"},{id:"newcomer",l:"Newcomer support",e:"🧭",d:"Other people figuring out NYC"},{id:"cultural",l:"Cultural community",e:"🌏",d:"People who share my background"},{id:"mens",l:"Men's group",e:"♂️",d:"Real talk, no performance"},{id:"womens",l:"Women's group",e:"♀️",d:"Safety, depth, solidarity"},{id:"mixed",l:"Surprise me",e:"🎲",d:"Expand my world"}];
+const CULTURAL=[{id:"low-drinking",l:"Low / no drinking 🫖"},{id:"family-style",l:"Family-style 🏠"},{id:"faith-friendly",l:"Faith-friendly 🕊️"},{id:"multilingual",l:"Multilingual 🗣️"},{id:"same-gender",l:"Same-gender ♾️"},{id:"introverted",l:"Introvert-friendly 🧘"},{id:"eastern",l:"Eastern social style 🌏"}];
+const COSTS=[{id:"free",l:"Free only 🌳",d:"Parks, walks, potlucks"},{id:"under-10",l:"Under $10 ☕",d:"Coffee, cheap eats"},{id:"under-20",l:"Under $20 🍺",d:"Most bars & restaurants"},{id:"flexible",l:"Flexible 🤷",d:"Whatever works"},{id:"host",l:"Rotating host 🏡",d:"Take turns hosting"}];
+const RITUALS=[{w:1,t:"Origin stories",p:"Where are you from — not the city, but the feeling of home."},{w:2,t:"What brought you here",p:"Why NYC? What surprised you when you arrived?"},{w:3,t:"What you're building",p:"What are you working toward? What feels missing?"},{w:4,t:"Show and tell",p:"Bring something. A photo, an object, a song. Share why."},{w:5,t:"Recommendation exchange",p:"Give the group your #1 rec: a restaurant, a book, anything."},{w:6,t:"One honest thing",p:"One challenge this month. Just something real."},{w:7,t:"Host someone",p:"Invite someone from outside. Show them what you built."},{w:8,t:"What continues",p:"Last week. What survives? Who stays? Exchange real info."}];
+const ASK_CATS=["Housing","Moving","Career","Recs","Health","Rides","Support","Skills","Food","General"];
+const PROMPTS=["What do you miss most from home?","What kind of friend are you trying to become?","What makes this city lonely?","My ideal Saturday looks like...","I moved here because...","A meal that reminds me of home..."];
+const VENUES={"Upper East Side":[{name:"The Penrose",addr:"1590 2nd Ave",beli:"the-penrose",type:"bar"},{name:"Central Park (E 72nd)",addr:"E 72nd & 5th Ave",beli:"",type:"park"}],"Upper West Side":[{name:"The Dead Poet",addr:"450 Amsterdam",beli:"the-dead-poet",type:"bar"}],"East Village":[{name:"Alphabet City Beer Co.",addr:"96 Ave C",beli:"alphabet-city-beer-co",type:"bar"},{name:"Tompkins Square",addr:"E 7th & Ave A",beli:"",type:"park"}],"West Village":[{name:"The Ear Inn",addr:"326 Spring St",beli:"the-ear-inn",type:"bar"}],"Chelsea":[{name:"The High Line",addr:"14th St entrance",beli:"",type:"park"}],"Williamsburg":[{name:"Domino Park",addr:"15 River St",beli:"",type:"park"}],"Park Slope":[{name:"Prospect Park",addr:"Grand Army Plaza",beli:"",type:"park"}],"Harlem":[{name:"Harlem Hops",addr:"2268 ACP Blvd",beli:"harlem-hops",type:"bar"}]};
 HOODS.forEach(h=>{if(!VENUES[h])VENUES[h]=[{name:"TBD",addr:h,beli:"",type:"bar"}];});
-
-const GUIDELINES=["Show up. If you RSVP, come.","Be present. Phones down.","No selling. Make friends first.","Include everyone.","Respect the venue. Tip well.","Zero tolerance for cruelty.","Vulnerability welcome. Judgment not.","What's shared stays shared."];
-
-const ASK_CATS=["Housing","Moving","Career","Recommendations","Health","Rides","Support","Skills","Dining","General"];
-const PROMPTS=["What do you miss most from home?","What kind of friend are you trying to become?","What makes this city lonely?","My ideal Saturday...","I moved here because...","Something nobody knows...","A meal that reminds me of home...","What I need that money can't buy..."];
-const GRAD=[{id:"renew",l:"Renew this cohort",d:"Same group, next season"},{id:"alumni",l:"Join alumni network",d:"Trusted connections citywide"},{id:"host",l:"Become a host",d:"Steward a new cohort"},{id:"new",l:"Start a new circle",d:"Build something specific"}];
 
 // ═══ UTILS ═══
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const pl=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 const ago=d=>{if(!d)return"";const m=Math.floor((Date.now()-new Date(d).getTime())/60000);if(m<1)return"now";if(m<60)return m+"m";const h=Math.floor(m/60);if(h<24)return h+"h";return Math.floor(h/24)+"d";};
-function genSeason(nk){const s=new Date(2026,3,20);const dm={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};while(s.getDay()!==dm[nk])s.setDate(s.getDate()+1);return Array.from({length:8},(_,i)=>{const d=new Date(s);d.setDate(d.getDate()+i*7);return{week:i+1,date:d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}),short:d.toLocaleDateString("en-US",{month:"short",day:"numeric"}),past:d<new Date()};});}
-function runMatch(users,cohorts){const matched=new Set(cohorts.flatMap(c=>c.member_ids||[]));const free=users.filter(u=>!matched.has(u.id)&&u.neighborhood&&u.nights?.length);const groups={};free.forEach(u=>u.nights.forEach(n=>{const k=`${u.neighborhood}::${n}`;if(!groups[k])groups[k]=[];groups[k].push(u);}));const res=[],used=new Set();Object.entries(groups).sort((a,b)=>b[1].length-a[1].length).forEach(([k,us])=>{const av=us.filter(u=>!used.has(u.id));if(av.length>=2){const[h,n]=k.split("::");const take=av.slice(0,12);take.forEach(u=>used.add(u.id));const vl=VENUES[h]||VENUES["Upper East Side"];const fc=take.filter(u=>u.cost_pref==="free").length;const pool=fc>take.length/2?vl.filter(v=>v.type==="park"):vl;const v=(pool.length?pool:vl)[Math.floor(Math.random()*(pool.length||vl.length))];res.push({id:`c-${uid()}`,name:CNAMES[(cohorts.length+res.length)%CNAMES.length],number:`#${100+cohorts.length+res.length}`,hood:h,night:n,venue:v,member_ids:take.map(u=>u.id),activity:INTERESTS.find(int=>take.filter(u=>(u.interests||[]).includes(int)).length>=2)||"Gathering",season:1,host_id:take[0]?.id||"",created_at:new Date().toISOString()});}});return res;}
 
-// ═══ DB ═══
+function genSeason(nk){
+  const s=new Date(2026,3,20);const dm={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  while(s.getDay()!==dm[nk])s.setDate(s.getDate()+1);
+  return Array.from({length:8},(_,i)=>{const d=new Date(s);d.setDate(d.getDate()+i*7);return{week:i+1,date:d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}),long:d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}),past:d<new Date()};});
+}
+
+function runMatch(users,cohorts){
+  console.log(`🔄 runMatch: ${users.length} users, ${cohorts.length} existing cohorts`);
+  const matched=new Set(cohorts.flatMap(c=>c.member_ids||[]));
+  const free=users.filter(u=>!matched.has(u.id)&&u.neighborhood&&Array.isArray(u.nights)&&u.nights.length>0);
+  console.log(`  Free users: ${free.length}`,free.map(u=>`${u.name}(${u.neighborhood}/${u.nights})`));
+  const groups={};
+  free.forEach(u=>u.nights.forEach(n=>{const k=`${u.neighborhood}::${n}`;if(!groups[k])groups[k]=[];groups[k].push(u);}));
+  const res=[],used=new Set();
+  Object.entries(groups).sort((a,b)=>b[1].length-a[1].length).forEach(([k,us])=>{
+    const av=us.filter(u=>!used.has(u.id));
+    console.log(`  Bucket ${k}: ${av.length} available`);
+    if(av.length>=2){
+      const[h,n]=k.split("::");const take=av.slice(0,12);take.forEach(u=>used.add(u.id));
+      const vl=VENUES[h]||VENUES["Upper East Side"];const v=vl[Math.floor(Math.random()*vl.length)];
+      const cohort={id:`c-${uid()}`,name:CNAMES[(cohorts.length+res.length)%CNAMES.length],number:`#${100+cohorts.length+res.length}`,hood:h,night:n,venue:v,member_ids:take.map(u=>u.id),activity:"",season:1,host_id:take[0]?.id||"",created_at:new Date().toISOString()};
+      console.log(`  ✅ Creating cohort:`,cohort.name,cohort.member_ids);
+      res.push(cohort);
+    }
+  });
+  console.log(`  Result: ${res.length} new cohorts`);
+  return res;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// DATABASE — THE FIX: Check {data, error} on every operation
+// Supabase JS client does NOT throw. It returns {data, error}.
+// Previous code used `await sb.from(t).upsert(d)` without
+// checking the return value, so errors were invisible.
+// ═══════════════════════════════════════════════════════════════
 const DB={
-  async get(t,q){try{if(sb){let r=sb.from(t).select("*");if(q)Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});const{data,error}=await r.order("created_at",{ascending:false});if(error){console.error(t,error.message);return[];}return data||[];}const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");if(q)return a.filter(x=>Object.entries(q).every(([k,v])=>String(x[k])===String(v)));return a;}catch(e){return[];}},
-  async put(t,d){try{if(sb){await sb.from(t).upsert(d,{onConflict:"id"});}else{const a=await this.get(t);const i=a.findIndex(x=>x.id===d.id);if(i>=0)a[i]=d;else a.push(d);localStorage.setItem(`co_${t}`,JSON.stringify(a));}}catch(e){}},
-  async add(t,d){try{if(sb){await sb.from(t).insert(d);}else{const a=await this.get(t);a.unshift(d);localStorage.setItem(`co_${t}`,JSON.stringify(a));}}catch(e){}},
-  async del(t,q){try{if(sb){let r=sb.from(t).delete();Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});await r;}else{const a=await this.get(t);localStorage.setItem(`co_${t}`,JSON.stringify(a.filter(x=>!Object.entries(q).every(([k,v])=>String(x[k])===String(v)))));}}catch(e){}},
-  async toggleRsvp(uid,cid,wk){const ex=await this.get("rsvps",{user_id:uid,cohort_id:cid});const m=ex.find(r=>Number(r.week)===wk);if(m){await this.del("rsvps",{id:m.id});return false;}else{await this.add("rsvps",{id:`${uid}-${cid}-${wk}`,user_id:uid,cohort_id:cid,week:wk,status:"going",created_at:new Date().toISOString()});return true;}},
-  mid(){return localStorage.getItem("co-me");},setMid(id){localStorage.setItem("co-me",id);},clearMid(){localStorage.removeItem("co-me");},
+  async get(t,q){
+    try{
+      if(sb){
+        let r=sb.from(t).select("*");
+        if(q)Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});
+        const{data,error}=await r.order("created_at",{ascending:false});
+        if(error){console.error(`❌ DB.get(${t}):`,error.message);return[];}
+        return data||[];
+      }
+      return JSON.parse(localStorage.getItem(`co_${t}`)||"[]").filter(x=>!q||Object.entries(q).every(([k,v])=>String(x[k])===String(v)));
+    }catch(e){console.error(`❌ DB.get(${t}) exception:`,e);return[];}
+  },
+
+  async put(t,d){
+    try{
+      if(sb){
+        const{data,error}=await sb.from(t).upsert(d,{onConflict:"id"});
+        if(error){console.error(`❌ DB.put(${t}):`,error.message,error.details,error.hint);return false;}
+        console.log(`✅ DB.put(${t}):`,d.id||d.name||"ok");
+        return true;
+      }
+      const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");
+      const i=a.findIndex(x=>x.id===d.id);if(i>=0)a[i]=d;else a.push(d);
+      localStorage.setItem(`co_${t}`,JSON.stringify(a));return true;
+    }catch(e){console.error(`❌ DB.put(${t}) exception:`,e);return false;}
+  },
+
+  async add(t,d){
+    try{
+      if(sb){
+        const{data,error}=await sb.from(t).insert(d);
+        if(error){console.error(`❌ DB.add(${t}):`,error.message,error.details,error.hint);return false;}
+        console.log(`✅ DB.add(${t}):`,d.id||"ok");
+        return true;
+      }
+      const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");a.unshift(d);
+      localStorage.setItem(`co_${t}`,JSON.stringify(a));return true;
+    }catch(e){console.error(`❌ DB.add(${t}) exception:`,e);return false;}
+  },
+
+  async del(t,q){
+    try{
+      if(sb){
+        let r=sb.from(t).delete();
+        Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});
+        const{error}=await r;
+        if(error){console.error(`❌ DB.del(${t}):`,error.message);return false;}
+        return true;
+      }
+      const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");
+      localStorage.setItem(`co_${t}`,JSON.stringify(a.filter(x=>!Object.entries(q).every(([k,v])=>String(x[k])===String(v)))));
+      return true;
+    }catch(e){console.error(`❌ DB.del(${t}) exception:`,e);return false;}
+  },
+
+  async toggleRsvp(userId,cohortId,wk){
+    const ex=await this.get("rsvps",{user_id:userId,cohort_id:cohortId});
+    const match=ex.find(r=>Number(r.week)===wk);
+    if(match){await this.del("rsvps",{id:match.id});return false;}
+    await this.add("rsvps",{id:`${userId}-${cohortId}-${wk}`,user_id:userId,cohort_id:cohortId,week:wk,status:"going",created_at:new Date().toISOString()});
+    return true;
+  },
+
+  mid(){return localStorage.getItem("co-me");},
+  setMid(id){localStorage.setItem("co-me",id);},
+  clearMid(){localStorage.removeItem("co-me");},
 };
 
-// ═══ STYLES — Institutional, not startup ═══
-// No rounded cards. No chips. Panels and ledgers.
-const s={
-  page:{maxWidth:560,margin:"0 auto",padding:"48px 20px 110px"},
-  // Section label — monospaced, uppercase, small
-  tag:{...mono,fontSize:10,letterSpacing:"2.5px",textTransform:"uppercase",color:C.green,marginBottom:16},
-  // Headlines — Newsreader, large, bone-colored
-  h1:{...display,fontSize:38,fontWeight:400,lineHeight:1.15,color:C.bright,letterSpacing:"-0.5px"},
-  h2:{...display,fontSize:26,fontWeight:400,lineHeight:1.2,color:C.bright},
-  h3:{...display,fontSize:18,fontWeight:400,color:C.bright},
-  // Body
-  p:{fontSize:15,color:C.text,lineHeight:1.7},
-  small:{fontSize:12,color:C.muted},
-  // Panels — sharp corners, thin borders, dark bg
-  panel:{background:C.surface,borderTop:`1px solid ${C.line}`,borderBottom:`1px solid ${C.line}`,padding:"20px",marginBottom:1},
-  // Divider — full width line
-  hr:{height:1,background:C.line,margin:"32px 0",border:"none"},
-  // Primary button — green, sharp
-  btn:{fontSize:14,fontWeight:600,letterSpacing:".5px",padding:"16px 32px",background:C.green,color:C.bright,width:"100%",textTransform:"uppercase"},
-  btnO:{fontSize:14,fontWeight:500,letterSpacing:".5px",padding:"14px 28px",background:"transparent",border:`1px solid ${C.lineL}`,color:C.text,width:"100%",textTransform:"uppercase"},
-  dis:{opacity:.3,pointerEvents:"none"},
-  // Toggle rows — replace chips
-  toggle:(on)=>({display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px",background:on?C.greenBg:"transparent",borderBottom:`1px solid ${C.line}`,color:on?C.greenL:C.text,fontSize:14,width:"100%",textAlign:"left",fontWeight:on?500:400}),
-  // Inline toggle — for compact selections
-  itoggle:(on)=>({display:"inline-block",padding:"8px 16px",fontSize:13,color:on?C.greenL:C.muted,borderBottom:on?`2px solid ${C.green}`:"2px solid transparent",fontWeight:on?600:400,letterSpacing:".3px"}),
-  // Small button
-  sm:{fontSize:11,fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",padding:"8px 16px",border:`1px solid ${C.lineL}`,color:C.text},
-  smG:{fontSize:11,fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",padding:"8px 16px",border:`1px solid ${C.green}`,color:C.greenL},
+
+// ═══ COMPONENTS ═══
+const GradHeader=({gradient,children,style:extra})=><div style={{background:gradient||C.grad1,borderRadius:24,padding:"28px 24px",color:"#fff",position:"relative",overflow:"hidden",...extra}}><div style={{position:"absolute",top:0,right:0,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,0.1)",transform:"translate(30%,-30%)"}}/>{children}</div>;
+
+const Pill=({on,children,onClick,color=C.green,style:extra})=><button onClick={onClick} style={{fontSize:14,fontWeight:on?700:500,padding:"10px 20px",borderRadius:100,border:`2px solid ${on?color:C.border}`,background:on?color+"15":C.white,color:on?color:C.text,transition:"all .2s",...extra}}>{children}</button>;
+
+const BigPill=({on,children,onClick,emoji,desc})=><button onClick={onClick} style={{display:"flex",alignItems:"center",gap:14,width:"100%",padding:"16px 20px",borderRadius:18,border:`2px solid ${on?C.green:C.border}`,background:on?C.greenPale:C.white,textAlign:"left",transition:"all .2s",marginBottom:8}}>
+  {emoji&&<span style={{fontSize:24}}>{emoji}</span>}
+  <div style={{flex:1}}><div style={{fontSize:15,fontWeight:on?700:500,color:on?C.green:C.ink}}>{children}</div>{desc&&<div style={{fontSize:12,color:C.muted,marginTop:2}}>{desc}</div>}</div>
+  {on&&<span style={{fontSize:18,color:C.green}}>✓</span>}
+</button>;
+
+const Avatar=({name,size=44,me:isMe})=>{const colors=["#FF6B6B","#4CAF72","#7C5CFC","#FF8E53","#2D7A4E","#D4A843","#E91E8C","#00BCD4"];const c=colors[((name||"").charCodeAt(0))%colors.length];return<div style={{width:size,height:size,borderRadius:size/2,background:isMe?C.grad1:c,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.4,fontWeight:800,color:"#fff",flexShrink:0,boxShadow:`0 2px 8px ${c}40`}}>{(name||"?")[0].toUpperCase()}</div>;};
+
+const Ico={
+  home:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>,
+  circle:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19c1-3 3-5 5.5-5s4.5 2 5.5 5"/></svg>,
+  ritual:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
+  ask:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12c0 2 .6 3.8 1.5 5.3L2 22l4.7-1.5c1.5.9 3.3 1.5 5.3 1.5z"/></svg>,
+  profile:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>,
 };
 
-// ═══ THE MARK — ◉ — simple, ownable ═══
-const Mark=({size=28})=><div style={{...mono,fontSize:size,color:C.green,lineHeight:1}}>◉</div>;
 
-// ═══════════════════════════════════════════════════════════════
-// APP
-// ═══════════════════════════════════════════════════════════════
+// ═══ APP ═══
 function App(){
   const[scr,setScr]=useState("landing");
   const[me,setMe]=useState(null);
@@ -176,44 +221,77 @@ function App(){
   const[loading,setLoading]=useState(true);
   const[saving,setSaving]=useState(false);
   const[step,setStep]=useState(0);
-  const[tab,setTab]=useState("ledger");
-  const[openWk,setOpenWk]=useState(null);
-  const[openMem,setOpenMem]=useState(null);
   const[toast,setToast]=useState(null);
-  const[form,setForm]=useState({name:"",age:"",neighborhood:"",bio:"",interests:[],nights:[],life_stage:"",intention:"",cultural_prefs:[],cost_pref:"",instagram:"",beli:"",prompts:[{q:PROMPTS[0],a:""}],vibe:"",commitment:6});
+  const[dbErr,setDbErr]=useState(null);
+  const[openMem,setOpenMem]=useState(null);
+  const[openWk,setOpenWk]=useState(null);
+  const[form,setForm]=useState({name:"",age:"",neighborhood:"",bio:"",interests:[],nights:[],life_stage:"",intention:"",cultural_prefs:[],cost_pref:"",instagram:"",beli:"",prompts:[{q:PROMPTS[0],a:""}],commitment:6});
   const[newPost,setNewPost]=useState("");
   const[memInput,setMemInput]=useState("");
   const[askForm,setAskForm]=useState({content:"",ask_type:"need",category:"General"});
   const[showAsk,setShowAsk]=useState(false);
+  const[tab,setTab]=useState("feed");
   const ref=useRef(null);
-
-  const go=useCallback(scr=>{setScr(scr);setOpenWk(null);setOpenMem(null);setTimeout(()=>ref.current?.scrollIntoView({behavior:"instant"}),10);},[]);
+  const go=useCallback(s=>{setScr(s);setOpenWk(null);setOpenMem(null);setTimeout(()=>ref.current?.scrollIntoView({behavior:"instant"}),10);},[]);
   const flash=m=>{setToast(m);setTimeout(()=>setToast(null),3e3);};
   const sF=(k,v)=>setForm(f=>({...f,[k]:v}));
   const tog=(key,val,max=99)=>setForm(f=>({...f,[key]:f[key].includes(val)?f[key].filter(x=>x!==val):f[key].length>=max?f[key]:[...f[key],val]}));
+  const pg={maxWidth:540,margin:"0 auto",padding:"24px 20px 120px"};
 
   // ─── LOAD ───
   const load=useCallback(async()=>{
-    setLoading(true);
+    setLoading(true);setDbErr(null);
     try{
-      if(sb){const{error}=await sb.from("users").select("id").limit(1);if(error){setLoading(false);return;}}
+      if(sb){
+        const{data,error}=await sb.from("users").select("id").limit(1);
+        if(error){
+          console.error("❌ Connection test:",error.message);
+          setDbErr(`Can't reach database: ${error.message}. Did you run the SQL setup?`);
+          setLoading(false);return;
+        }
+        console.log("✅ Supabase connection verified");
+      }
       const[u,c]=await Promise.all([DB.get("users"),DB.get("cohorts")]);
+      console.log(`📊 Loaded ${u.length} users, ${c.length} cohorts`);
       setUsers(u);setCohorts(c);
       const mid=DB.mid();
-      if(mid){const f=u.find(x=>x.id===mid);if(f){setMe(f);setScr("home");
-        const mc=c.find(co=>(co.member_ids||[]).includes(mid));
-        if(mc){const[r,p,a,m]=await Promise.all([DB.get("rsvps",{cohort_id:mc.id}),DB.get("posts",{cohort_id:mc.id}),DB.get("asks",{cohort_id:mc.id}),DB.get("memories",{cohort_id:mc.id})]);setRsvps(r);setPosts(p);setAsks(a);setMemos(m);}
-      }}
-    }catch(e){console.error(e);}
+      if(mid){
+        const f=u.find(x=>x.id===mid);
+        if(f){
+          setMe(f);setScr("home");
+          const mc=c.find(co=>(co.member_ids||[]).includes(mid));
+          if(mc){
+            const[r,p,a,m]=await Promise.all([
+              DB.get("rsvps",{cohort_id:mc.id}),
+              DB.get("posts",{cohort_id:mc.id}),
+              DB.get("asks",{cohort_id:mc.id}),
+              DB.get("memories",{cohort_id:mc.id})
+            ]);
+            setRsvps(r);setPosts(p);setAsks(a);setMemos(m);
+          }
+        }
+      }
+    }catch(e){console.error("❌ Load exception:",e);setDbErr(e.message);}
     setLoading(false);
   },[]);
   useEffect(()=>{load();},[load]);
 
   const refresh=useCallback(async()=>{
-    const[u,c]=await Promise.all([DB.get("users"),DB.get("cohorts")]);setUsers(u);setCohorts(c);
-    if(me){const up=u.find(x=>x.id===me.id);if(up)setMe(up);const mc=c.find(co=>(co.member_ids||[]).includes(me.id));
-      if(mc){const[r,p,a,m]=await Promise.all([DB.get("rsvps",{cohort_id:mc.id}),DB.get("posts",{cohort_id:mc.id}),DB.get("asks",{cohort_id:mc.id}),DB.get("memories",{cohort_id:mc.id})]);setRsvps(r);setPosts(p);setAsks(a);setMemos(m);}}
-    flash("Updated");
+    const[u,c]=await Promise.all([DB.get("users"),DB.get("cohorts")]);
+    setUsers(u);setCohorts(c);
+    if(me){
+      const mc=c.find(co=>(co.member_ids||[]).includes(me.id));
+      if(mc){
+        const[r,p,a,m]=await Promise.all([
+          DB.get("rsvps",{cohort_id:mc.id}),
+          DB.get("posts",{cohort_id:mc.id}),
+          DB.get("asks",{cohort_id:mc.id}),
+          DB.get("memories",{cohort_id:mc.id})
+        ]);
+        setRsvps(r);setPosts(p);setAsks(a);setMemos(m);
+      }
+    }
+    flash("✨ Updated");
   },[me]);
 
   // ─── DERIVED ───
@@ -227,402 +305,376 @@ function App(){
   const hoodWait=useMemo(()=>users.filter(u=>u.neighborhood===me?.neighborhood&&u.id!==me?.id&&!cohorts.some(c=>(c.member_ids||[]).includes(u.id))),[users,me,cohorts]);
   const canSign=form.name&&form.age>=21&&form.age<=34&&form.neighborhood&&form.interests.length>=3&&form.nights.length>=1;
 
-  // ─── ACTIONS ───
-  const signup=async()=>{setSaving(true);const u={id:uid(),name:form.name.trim(),age:parseInt(form.age),neighborhood:form.neighborhood,bio:form.bio.trim(),interests:form.interests,nights:form.nights,life_stage:form.life_stage,intention:form.intention,cultural_prefs:form.cultural_prefs,cost_pref:form.cost_pref,instagram:form.instagram.trim(),beli:form.beli.trim(),prompts:form.prompts.filter(p=>p.a.trim()),badges:[],vibe:form.vibe,commitment:form.commitment,joined_at:new Date().toISOString()};await DB.put("users",u);DB.setMid(u.id);setMe(u);const[au,ac]=await Promise.all([DB.get("users"),DB.get("cohorts")]);setUsers(au);setCohorts(ac);const nc=runMatch(au,ac);for(const c of nc)await DB.put("cohorts",c);if(nc.length){setCohorts([...ac,...nc]);flash("Matched.");}else flash("Waitlisted. Share the link.");setSaving(false);go("home");};
+  // ─── SIGNUP WITH MATCHING ───
+  const signup=async()=>{
+    setSaving(true);
+    console.log("🚀 Starting signup...");
+
+    const userData={
+      id:uid(),name:form.name.trim(),age:parseInt(form.age),
+      neighborhood:form.neighborhood,bio:form.bio.trim(),
+      interests:form.interests,nights:form.nights,
+      life_stage:form.life_stage,intention:form.intention,
+      cultural_prefs:form.cultural_prefs,cost_pref:form.cost_pref,
+      instagram:form.instagram.trim(),beli:form.beli.trim(),
+      prompts:form.prompts.filter(p=>p.a.trim()),badges:[],vibe:"",
+      commitment:form.commitment,
+      joined_at:new Date().toISOString()
+    };
+
+    // Step 1: Save user
+    const putOk=await DB.put("users",userData);
+    console.log("  User saved:",putOk);
+    if(!putOk){flash("❌ Failed to save. Check console.");setSaving(false);return;}
+
+    DB.setMid(userData.id);
+    setMe(userData);
+
+    // Step 2: Fetch fresh data
+    const[au,ac]=await Promise.all([DB.get("users"),DB.get("cohorts")]);
+    console.log(`  Fresh data: ${au.length} users, ${ac.length} cohorts`);
+    setUsers(au);setCohorts(ac);
+
+    // Step 3: Run matching
+    const newCohorts=runMatch(au,ac);
+    console.log(`  Matching produced ${newCohorts.length} cohorts`);
+
+    // Step 4: Save each new cohort
+    let saved=0;
+    for(const c of newCohorts){
+      const ok=await DB.put("cohorts",c);
+      console.log(`  Cohort ${c.name} save:`,ok);
+      if(ok)saved++;
+    }
+
+    // Step 5: Refresh cohort list
+    const freshCohorts=await DB.get("cohorts");
+    setCohorts(freshCohorts);
+    console.log(`  Final cohorts in DB: ${freshCohorts.length}`);
+
+    if(saved>0)flash("🎉 You're matched!");
+    else if(newCohorts.length>0)flash("❌ Matching found a group but save failed. Check console.");
+    else flash("You're on the waitlist! Share to match faster.");
+
+    setSaving(false);
+    go("home");
+  };
+
+  // ─── OTHER ACTIONS ───
   const doRsvp=async wk=>{if(!me||!mc)return;await DB.toggleRsvp(me.id,mc.id,wk);setRsvps(await DB.get("rsvps",{cohort_id:mc.id}));};
   const doPost=async()=>{if(!me||!mc||!newPost.trim())return;await DB.add("posts",{id:`p-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,content:newPost.trim(),post_type:"update",created_at:new Date().toISOString()});setNewPost("");setPosts(await DB.get("posts",{cohort_id:mc.id}));};
   const doMem=async()=>{if(!me||!mc||!memInput.trim()||!cw)return;await DB.add("memories",{id:`m-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,content:memInput.trim(),week:cw.week,created_at:new Date().toISOString()});setMemInput("");setMemos(await DB.get("memories",{cohort_id:mc.id}));};
-  const doAsk=async()=>{if(!me||!mc||!askForm.content.trim())return;await DB.add("asks",{id:`a-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,...askForm,content:askForm.content.trim(),resolved:false,helper_id:"",helper_name:"",created_at:new Date().toISOString()});setAskForm({content:"",ask_type:"need",category:"General"});setShowAsk(false);setAsks(await DB.get("asks",{cohort_id:mc.id}));};
-  const share=()=>{const u=window.location.href;if(navigator.share)navigator.share({title:"Cohort",text:"A new institution for belonging.",url:u});else{navigator.clipboard?.writeText(u);flash("Link copied");}};
+  const doAsk=async()=>{if(!me||!mc||!askForm.content.trim())return;await DB.add("asks",{id:`a-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,...askForm,content:askForm.content.trim(),resolved:false,created_at:new Date().toISOString()});setAskForm({content:"",ask_type:"need",category:"General"});setShowAsk(false);setAsks(await DB.get("asks",{cohort_id:mc.id}));};
+  const share=()=>{const u=window.location.href;if(navigator.share)navigator.share({title:"Cohort",text:"Find your people ✦",url:u});else{navigator.clipboard?.writeText(u);flash("📋 Link copied!");}};
   const logout=()=>{DB.clearMid();setMe(null);go("landing");};
 
   // ─── NAV ───
-  const Nav=()=>me&&mc?<div className="nav">{[["home","Home"],["circle","Circle"],["ritual","Rituals"],["ask","Ask / Offer"],["profile","Profile"]].map(([k,l])=><button key={k} className={scr===k?"on":""} onClick={()=>go(k)}>{l}</button>)}</div>:null;
+  const Nav=()=>me&&mc?<div className="bnav">{[["home","Home","home"],["circle","Circle","circle"],["ritual","Rituals","ritual"],["ask","Asks","ask"],["profile","Me","profile"]].map(([k,l,i])=><button key={k} className={scr===k?"on":""} onClick={()=>go(k)}>{Ico[i](scr===k?C.green:"#B8AD9E")}<span>{l}</span></button>)}</div>:null;
 
   // ═══ RENDER ═══
   if(loading)return<div style={{background:C.bg,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><div className="spinner"/></div>;
 
-  const today=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-
   return(
-  <div style={{background:C.bg,color:C.body,minHeight:"100vh"}}>
+  <div style={{background:C.bg,minHeight:"100vh"}}>
   <div ref={ref}/>
-  {toast&&<div style={{position:"fixed",bottom:mc?60:20,left:"50%",transform:"translateX(-50%)",zIndex:999,...mono,fontSize:12,letterSpacing:"1px",background:C.surface,border:`1px solid ${C.line}`,color:C.greenL,padding:"12px 24px",maxWidth:"90vw",textAlign:"center",animation:"enter .3s ease"}}>{toast}</div>}
+  {toast&&<div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:999,fontSize:14,fontWeight:700,background:C.white,border:`2px solid ${C.border}`,color:C.ink,padding:"14px 28px",borderRadius:100,boxShadow:"0 8px 32px #0001",animation:"popIn .4s cubic-bezier(.175,.885,.32,1.275)"}}>{toast}</div>}
 
-  {/* ═══ LANDING — Full-screen opening statement ═══ */}
+  {/* ═══ LANDING ═══ */}
   {scr==="landing"&&<div style={{minHeight:"100vh",display:"flex",flexDirection:"column"}}>
-    {/* Top bar */}
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"24px 20px",borderBottom:`1px solid ${C.line}`}}>
-      <div style={{display:"flex",alignItems:"center",gap:12}}><Mark size={22}/><span style={{...mono,fontSize:11,letterSpacing:"3px",textTransform:"uppercase",color:C.muted}}>Cohort</span></div>
-      <div style={{...mono,fontSize:10,color:C.muted,letterSpacing:"1px"}}>{today}</div>
-    </div>
+    <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",maxWidth:480,margin:"0 auto",padding:"40px 24px",width:"100%"}}>
+      <div style={{fontSize:48,marginBottom:8}} className="pop">✦</div>
+      <h1 style={{fontSize:40,fontWeight:800,lineHeight:1.1,color:C.ink,marginBottom:16,letterSpacing:"-1px"}} className="pop">Find your<br/>people.</h1>
+      <p style={{fontSize:17,color:C.text,lineHeight:1.65,marginBottom:40,maxWidth:360,animation:"popIn .5s ease .15s both"}}>
+        We put you in a small group in your neighborhood. Same faces, same place, every week for 8 weeks. Strangers become friends.
+      </p>
 
-    {/* Hero */}
-    <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"0 20px",maxWidth:560,margin:"0 auto",width:"100%"}}>
-      <div style={{marginBottom:48}} className="enter">
-        <h1 style={{...s.h1,fontSize:44,marginBottom:20,animation:"enter .7s ease .1s both"}}>
-          A new institution<br/>for belonging.
-        </h1>
-        <p style={{...s.p,maxWidth:400,animation:"enter .7s ease .25s both"}}>
-          We place you in a small circle of people in your neighborhood.
-          Same faces. Same place. Every week. Until familiarity becomes friendship.
-        </p>
-      </div>
+      {dbErr&&<div className="err-banner">{dbErr}</div>}
 
-      <div style={{animation:"enter .7s ease .4s both"}}>
-        <button style={s.btn} onClick={()=>{setStep(0);go("signup");}}>Enter</button>
-      </div>
-
-      <div style={{marginTop:48,borderTop:`1px solid ${C.line}`,paddingTop:20,animation:"enter .7s ease .55s both"}}>
-        <div style={{display:"flex",justifyContent:"space-between",...mono,fontSize:10,letterSpacing:"1.5px",textTransform:"uppercase",color:C.muted}}>
-          <span>{pl(users.length,"person")} joined</span>
-          <span>{pl(cohorts.length,"circle")} formed</span>
-          <span>NYC</span>
+      <GradHeader gradient={C.grad1} style={{marginBottom:24,animation:"popIn .5s ease .25s both"}}>
+        <div style={{fontSize:13,fontWeight:600,opacity:.8,marginBottom:8}}>How it works</div>
+        <div style={{display:"flex",gap:16}}>
+          {[{t:"Sign up",e:"✍️"},{t:"Get matched",e:"🤝"},{t:"Meet weekly",e:"📍"},{t:"Keep your friends",e:"💚"}].map((x,i)=>
+            <div key={i} style={{flex:1,textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{x.e}</div><div style={{fontSize:11,fontWeight:700}}>{x.t}</div></div>
+          )}
         </div>
+      </GradHeader>
+
+      <button style={{fontSize:16,fontWeight:800,padding:"18px 32px",borderRadius:100,background:C.green,color:"#fff",width:"100%",boxShadow:"0 4px 16px "+C.green+"40",animation:"popIn .5s ease .35s both"}} onClick={()=>{setStep(0);go("signup");}}>
+        Get started →
+      </button>
+
+      <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:20,fontSize:13,color:C.muted,fontWeight:600,animation:"popIn .5s ease .45s both"}}>
+        <span>{pl(users.length,"person")} joined</span><span>·</span><span>{pl(cohorts.length,"circle")} formed</span>
       </div>
     </div>
-
-    {/* Bottom links */}
-    <div style={{padding:"20px",borderTop:`1px solid ${C.line}`,display:"flex",justifyContent:"center",gap:32,...mono,fontSize:10,letterSpacing:"1.5px",textTransform:"uppercase"}}>
-      <button style={{color:C.muted}} onClick={()=>go("about")}>About</button>
-      <button style={{color:C.muted}} onClick={()=>go("safety")}>Guidelines</button>
-      <button style={{color:C.muted}} onClick={()=>go("explore")}>Neighborhoods</button>
-    </div>
   </div>}
 
-  {/* ═══ ABOUT ═══ */}
-  {scr==="about"&&<div style={s.page}>
-    <div style={s.tag} className="enter">About</div>
-    <h2 style={{...s.h2,marginBottom:20}} className="enter">Community used to be the default.</h2>
-    <div style={{...s.p,marginBottom:16}}>You made friends through repeated contact with the same people in the same places. That infrastructure is gone.</div>
-    <div style={{...s.p,marginBottom:16}}>Cohort manufactures the conditions where strangers become familiar, familiar people become reliable, and reliable people become each other's community.</div>
-    <div style={{...s.p,marginBottom:16}}>This is not a matching app. Not a nightlife tool. Not networking with better branding. We give you a small group, a night, and a place. Then we get out of the way.</div>
-    <div style={s.hr}/><button style={s.btn} onClick={()=>go(me?"home":"signup")}>{me?"Back":"Enter"}</button>
-    <div style={{textAlign:"center",marginTop:16}}><button style={{...s.small,color:C.muted}} onClick={()=>go("landing")}>Back</button></div>
+  {/* ═══ SIGNUP ═══ */}
+  {scr==="signup"&&<div style={pg}>
+    <div style={{height:6,background:C.border,borderRadius:3,marginBottom:32,overflow:"hidden"}}><div style={{height:"100%",background:C.grad1,borderRadius:3,width:`${((step+1)/6)*100}%`,transition:"width .3s"}}/></div>
+
+    {step===0&&<div className="pop">
+      <div style={{fontSize:32,marginBottom:8}}>👋</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Let's start</h2>
+      <p style={{fontSize:15,color:C.muted,marginBottom:28}}>Takes 2 minutes.</p>
+      <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>First name</div><input value={form.name} onChange={e=>sF("name",e.target.value)} placeholder="What your crew calls you"/></div>
+      <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Age</div><input type="number" min={21} max={34} value={form.age} onChange={e=>sF("age",e.target.value)} placeholder="21–34"/></div>
+      <div style={{marginBottom:28}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Neighborhood</div><select value={form.neighborhood} onChange={e=>sF("neighborhood",e.target.value)}><option value="">Pick yours</option>{HOODS.map(n=><option key={n} value={n}>{n}</option>)}</select></div>
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(!form.name||!form.age||form.age<21||form.age>34||!form.neighborhood?{opacity:.3,pointerEvents:"none"}:{})}} onClick={()=>setStep(1)}>Continue →</button>
+    </div>}
+
+    {step===1&&<div className="pop">
+      <div style={{fontSize:32,marginBottom:8}}>🧭</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Where are you at?</h2>
+      <p style={{fontSize:15,color:C.muted,marginBottom:24}}>We match by life chapter, not just age.</p>
+      {STAGES.map(ls=><BigPill key={ls.id} on={form.life_stage===ls.id} onClick={()=>sF("life_stage",form.life_stage===ls.id?"":ls.id)} emoji={ls.e}>{ls.l}</BigPill>)}
+      <div style={{fontSize:12,fontWeight:700,color:C.muted,marginTop:24,marginBottom:12,textTransform:"uppercase",letterSpacing:"1px"}}>What kind of crew?</div>
+      {INTENTIONS.map(it=><BigPill key={it.id} on={form.intention===it.id} onClick={()=>sF("intention",form.intention===it.id?"":it.id)} emoji={it.e} desc={it.d}>{it.l}</BigPill>)}
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:20}} onClick={()=>setStep(2)}>Continue →</button>
+    </div>}
+
+    {step===2&&<div className="pop">
+      <div style={{fontSize:32,marginBottom:8}}>⚡</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Interests & nights</h2>
+      <p style={{fontSize:15,color:C.muted,marginBottom:20}}>Pick 3–5 things and at least one night.</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28}}>
+        {INTERESTS.map(x=><Pill key={x} on={form.interests.includes(x)} onClick={()=>tog("interests",x,5)}>{x}</Pill>)}
+      </div>
+      <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:12,textTransform:"uppercase",letterSpacing:"1px"}}>Available nights</div>
+      <div style={{display:"flex",gap:8,marginBottom:28}}>
+        {NIGHTS.map(x=><Pill key={x} on={form.nights.includes(x)} onClick={()=>tog("nights",x)} style={{flex:1,textAlign:"center",padding:"12px 8px"}}>{x}</Pill>)}
+      </div>
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(form.interests.length<3||form.nights.length<1?{opacity:.3,pointerEvents:"none"}:{})}} onClick={()=>setStep(3)}>Continue →</button>
+    </div>}
+
+    {step===3&&<div className="pop">
+      <div style={{fontSize:32,marginBottom:8}}>🌿</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Your vibe</h2>
+      <p style={{fontSize:15,color:C.muted,marginBottom:20}}>All optional. Helps us find the right room.</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:24}}>
+        {CULTURAL.map(cp=><Pill key={cp.id} on={form.cultural_prefs.includes(cp.id)} onClick={()=>tog("cultural_prefs",cp.id)}>{cp.l}</Pill>)}
+      </div>
+      <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:12,textTransform:"uppercase",letterSpacing:"1px"}}>Budget</div>
+      {COSTS.map(cp=><BigPill key={cp.id} on={form.cost_pref===cp.id} onClick={()=>sF("cost_pref",form.cost_pref===cp.id?"":cp.id)} desc={cp.d}>{cp.l}</BigPill>)}
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:20}} onClick={()=>setStep(4)}>Continue →</button>
+    </div>}
+
+    {step===4&&<div className="pop">
+      <div style={{fontSize:32,marginBottom:8}}>💬</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>About you</h2>
+      <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Bio</div><textarea style={{minHeight:80}} value={form.bio} onChange={e=>sF("bio",e.target.value)} placeholder="Where you're from, what you do, why you're here"/></div>
+      <div style={{marginBottom:16}}><select style={{fontSize:14,marginBottom:8}} value={form.prompts[0]?.q} onChange={e=>{const p=[...form.prompts];p[0]={...p[0],q:e.target.value};sF("prompts",p);}}>{PROMPTS.map(q=><option key={q} value={q}>{q}</option>)}</select><textarea style={{minHeight:60}} value={form.prompts[0]?.a} onChange={e=>{const p=[...form.prompts];p[0]={...p[0],a:e.target.value};sF("prompts",p);}} placeholder="Your answer..."/></div>
+      <div style={{display:"flex",gap:12}}><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Instagram</div><input value={form.instagram} onChange={e=>sF("instagram",e.target.value)} placeholder="@handle"/></div><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Beli</div><input value={form.beli} onChange={e=>sF("beli",e.target.value)} placeholder="username"/></div></div>
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:24}} onClick={()=>setStep(5)}>Continue →</button>
+    </div>}
+
+    {step===5&&<div className="pop">
+      <div style={{fontSize:32,marginBottom:8}}>🤝</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Your commitment</h2>
+      <p style={{fontSize:15,color:C.muted,marginBottom:20}}>Reliability {">"} compatibility. How many of 8 weeks?</p>
+      <div style={{display:"flex",gap:8,marginBottom:24}}>
+        {[5,6,7,8].map(n=><button key={n} style={{flex:1,padding:"16px 0",borderRadius:16,border:`2px solid ${form.commitment===n?C.green:C.border}`,background:form.commitment===n?C.greenPale:C.white,fontSize:20,fontWeight:800,color:form.commitment===n?C.green:C.muted}} onClick={()=>sF("commitment",n)}>{n}</button>)}
+      </div>
+      <GradHeader gradient={C.grad1} style={{marginBottom:24}}>
+        <div style={{fontWeight:800,fontSize:16,marginBottom:4}}>{form.name}, {form.age}</div>
+        <div style={{fontSize:13,opacity:.85}}>{form.neighborhood} · {form.nights.map(n=>NF[n]).join(", ")}</div>
+        <div style={{fontSize:13,opacity:.85,marginTop:2}}>{form.interests.join(", ")}</div>
+        {form.life_stage&&<div style={{fontSize:13,marginTop:4,opacity:.9}}>{STAGES.find(x=>x.id===form.life_stage)?.e} {STAGES.find(x=>x.id===form.life_stage)?.l}</div>}
+      </GradHeader>
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",boxShadow:"0 4px 16px "+C.green+"40",...(!canSign||saving?{opacity:.3,pointerEvents:"none"}:{})}} onClick={signup}>{saving?"Finding your people...":"Join the waitlist 🎉"}</button>
+    </div>}
+
+    <div style={{textAlign:"center",marginTop:16}}><button style={{fontSize:14,color:C.muted,fontWeight:600}} onClick={()=>step>0?setStep(step-1):go("landing")}>← Back</button></div>
   </div>}
 
-  {/* ═══ SAFETY ═══ */}
-  {scr==="safety"&&<div style={s.page}>
-    <div style={s.tag} className="enter">Community code</div>
-    <h2 style={{...s.h2,marginBottom:24}} className="enter">The agreement</h2>
-    {GUIDELINES.map((g,i)=><div key={i} style={{...s.panel,animation:`enter .4s ease ${i*.05}s both`}}><span style={{...mono,fontSize:10,color:C.green,marginRight:12}}>{String(i+1).padStart(2,"0")}</span>{g}</div>)}
-    <div style={s.hr}/><button style={s.btn} onClick={()=>go(me?"home":"landing")}>Back</button>
-  </div>}
-
-  {/* ═══ EXPLORE ═══ */}
-  {scr==="explore"&&<div style={s.page}>
-    <div style={s.tag} className="enter">Neighborhoods</div>
-    <h2 style={{...s.h2,marginBottom:24}} className="enter">Where circles are forming</h2>
-    {(()=>{const st={};users.forEach(u=>{if(u.neighborhood)st[u.neighborhood]=(st[u.neighborhood]||0)+1;});return Object.entries(st).sort((a,b)=>b[1]-a[1]).map(([h,ct],i)=>{const cc=cohorts.filter(c=>c.hood===h).length;return<div key={h} style={{...s.panel,display:"flex",justifyContent:"space-between",alignItems:"center",animation:`enter .3s ease ${i*.03}s both`}}>
-      <div><div style={{fontSize:14,fontWeight:500,color:C.body}}>{h}</div>{cc>0&&<div style={{...mono,fontSize:10,color:C.green,marginTop:4}}>{pl(cc,"active circle")}</div>}</div>
-      <div style={{...mono,fontSize:12,color:C.muted}}>{ct}</div>
-    </div>;});})()}
-    <div style={s.hr}/><button style={s.btn} onClick={()=>go(me?"home":"signup")}>{me?"Back":"Enter"}</button>
-  </div>}
-
-  {/* ═══ SIGNUP — Rite of entry, not profile wizard ═══ */}
-  {scr==="signup"&&<div style={s.page}>
-    {/* Progress — not dots, a line */}
-    <div style={{height:2,background:C.line,marginBottom:40,position:"relative"}}><div style={{position:"absolute",left:0,top:0,height:"100%",background:C.green,width:`${((step+1)/6)*100}%`,transition:"width .3s"}}/></div>
-
-    {step===0&&<div className="enter">
-      <div style={s.tag}>Rite of entry</div>
-      <h2 style={{...s.h2,marginBottom:8}}>Where do you return to?</h2>
-      <p style={{...s.p,marginBottom:28}}>Not where you visit. Where you live.</p>
-      <div style={{marginBottom:20}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>First name</div><input value={form.name} onChange={e=>sF("name",e.target.value)} placeholder="What your circle calls you"/></div>
-      <div style={{marginBottom:20}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Age</div><input type="number" min={21} max={34} value={form.age} onChange={e=>sF("age",e.target.value)} placeholder="21–34"/></div>
-      <div style={{marginBottom:28}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Neighborhood</div><select value={form.neighborhood} onChange={e=>sF("neighborhood",e.target.value)}><option value="">—</option>{HOODS.map(n=><option key={n} value={n}>{n}</option>)}</select></div>
-      <button style={{...s.btn,...(!form.name||!form.age||form.age<21||form.age>34||!form.neighborhood?s.dis:{})}} onClick={()=>setStep(1)}>Continue</button>
-    </div>}
-
-    {step===1&&<div className="enter">
-      <div style={s.tag}>Rite of entry</div>
-      <h2 style={{...s.h2,marginBottom:8}}>What chapter are you in?</h2>
-      <p style={{...s.p,marginBottom:24}}>We match within life stage, not just age.</p>
-      {STAGES.map(ls=><button key={ls.id} style={s.toggle(form.life_stage===ls.id)} onClick={()=>sF("life_stage",form.life_stage===ls.id?"":ls.id)}>{ls.l}</button>)}
-      <div style={{marginTop:28}}><div style={{...s.small,marginBottom:12,textTransform:"uppercase",letterSpacing:"1.5px"}}>What kind of belonging?</div>
-      {INTENTIONS.map(it=><button key={it.id} style={s.toggle(form.intention===it.id)} onClick={()=>sF("intention",form.intention===it.id?"":it.id)}>{it.l}</button>)}
-      </div>
-      <div style={{marginTop:28}}><button style={s.btn} onClick={()=>setStep(2)}>Continue</button></div>
-    </div>}
-
-    {step===2&&<div className="enter">
-      <div style={s.tag}>Rite of entry</div>
-      <h2 style={{...s.h2,marginBottom:8}}>What gets you out of the apartment?</h2>
-      <p style={{...s.p,marginBottom:24}}>Pick 3–5. We match on overlap.</p>
-      <div style={{display:"flex",flexWrap:"wrap",gap:0}}>
-        {INTERESTS.map(x=><button key={x} style={{...s.itoggle(form.interests.includes(x)),padding:"10px 14px"}} onClick={()=>tog("interests",x,5)}>{x}</button>)}
-      </div>
-      <div style={{marginTop:32}}><div style={{...s.small,marginBottom:12,textTransform:"uppercase",letterSpacing:"1.5px"}}>Which nights work?</div>
-      <div style={{display:"flex"}}>{NIGHTS.map(x=><button key={x} style={{...s.itoggle(form.nights.includes(x)),flex:1,textAlign:"center"}} onClick={()=>tog("nights",x)}>{x}</button>)}</div>
-      </div>
-      <div style={{marginTop:28}}><button style={{...s.btn,...(form.interests.length<3||form.nights.length<1?s.dis:{})}} onClick={()=>setStep(3)}>Continue</button></div>
-    </div>}
-
-    {step===3&&<div className="enter">
-      <div style={s.tag}>Rite of entry</div>
-      <h2 style={{...s.h2,marginBottom:8}}>Your comfort zone</h2>
-      <p style={{...s.p,marginBottom:24}}>All optional. Helps us find the right room.</p>
-      {CULTURAL.map(cp=><button key={cp.id} style={s.toggle(form.cultural_prefs.includes(cp.id))} onClick={()=>tog("cultural_prefs",cp.id)}>{cp.l}</button>)}
-      <div style={{marginTop:24}}><div style={{...s.small,marginBottom:12,textTransform:"uppercase",letterSpacing:"1.5px"}}>Budget</div>
-      {COSTS.map(cp=><button key={cp.id} style={s.toggle(form.cost_pref===cp.id)} onClick={()=>sF("cost_pref",form.cost_pref===cp.id?"":cp.id)}>{cp.l}</button>)}
-      </div>
-      <div style={{marginTop:28}}><button style={s.btn} onClick={()=>setStep(4)}>Continue</button></div>
-    </div>}
-
-    {step===4&&<div className="enter">
-      <div style={s.tag}>Rite of entry</div>
-      <h2 style={{...s.h2,marginBottom:8}}>One thing about you</h2>
-      <p style={{...s.p,marginBottom:24}}>Not a profile. Just a starting point.</p>
-      <div style={{marginBottom:20}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>About you</div><textarea style={{minHeight:80}} value={form.bio} onChange={e=>sF("bio",e.target.value)} placeholder="Where you're from. What you do. Why you're here."/></div>
-      <div style={{marginBottom:20}}><select value={form.prompts[0]?.q} onChange={e=>{const pr=[...form.prompts];pr[0]={...pr[0],q:e.target.value};sF("prompts",pr);}} style={{fontSize:13,marginBottom:8}}>{PROMPTS.map(q=><option key={q} value={q}>{q}</option>)}</select><textarea style={{minHeight:60}} value={form.prompts[0]?.a} onChange={e=>{const pr=[...form.prompts];pr[0]={...pr[0],a:e.target.value};sF("prompts",pr);}} placeholder="Your answer"/></div>
-      <div style={{display:"flex",gap:12,marginBottom:20}}><div style={{flex:1}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Instagram</div><input value={form.instagram} onChange={e=>sF("instagram",e.target.value)} placeholder="@handle"/></div><div style={{flex:1}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Beli</div><input value={form.beli} onChange={e=>sF("beli",e.target.value)} placeholder="username"/></div></div>
-      <button style={s.btn} onClick={()=>setStep(5)}>Continue</button>
-    </div>}
-
-    {step===5&&<div className="enter">
-      <div style={s.tag}>Rite of entry</div>
-      <h2 style={{...s.h2,marginBottom:8}}>Your commitment</h2>
-      <p style={{...s.p,marginBottom:24}}>Reliability matters more than compatibility. How many of 8 weeks?</p>
-      <div style={{display:"flex",borderTop:`1px solid ${C.line}`,borderBottom:`1px solid ${C.line}`,marginBottom:28}}>
-        {[5,6,7,8].map(n=><button key={n} style={{flex:1,padding:"18px 0",fontSize:18,fontWeight:form.commitment===n?600:400,color:form.commitment===n?C.greenL:C.muted,borderRight:n<8?`1px solid ${C.line}`:"none",background:form.commitment===n?C.greenBg:"transparent",...display}} onClick={()=>sF("commitment",n)}>{n}</button>)}
-      </div>
-      <div style={{...s.p,fontSize:13,marginBottom:16}}>By entering, you agree to the <button style={{color:C.greenL,fontSize:13}} onClick={()=>go("safety")}>community code</button>.</div>
-      {/* Confirmation */}
-      <div style={{...s.panel,marginBottom:24}}>
-        <div style={{fontSize:14,fontWeight:500,color:C.bright}}>{form.name}, {form.age}</div>
-        <div style={{...mono,fontSize:11,color:C.muted,marginTop:4}}>{form.neighborhood} · {form.nights.map(n=>NF[n]).join(", ")} · {form.commitment}/8 weeks</div>
-        <div style={{fontSize:13,color:C.text,marginTop:4}}>{form.interests.join(" · ")}</div>
-        {form.life_stage&&<div style={{fontSize:12,color:C.green,marginTop:6}}>{STAGES.find(ls=>ls.id===form.life_stage)?.l}</div>}
-      </div>
-      <button style={{...s.btn,...(!canSign||saving?s.dis:{})}} onClick={signup}>{saving?"Matching...":"Join the waitlist"}</button>
-    </div>}
-
-    <div style={{textAlign:"center",marginTop:16}}><button style={{fontSize:13,color:C.muted}} onClick={()=>step>0?setStep(step-1):go("landing")}>Back</button></div>
-  </div>}
-
-  {/* ═══ HOME — Circle Ledger, not a dashboard ═══ */}
-  {scr==="home"&&me&&<div style={s.page}>
-    {/* Header */}
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:32}}>
-      <div style={{display:"flex",alignItems:"center",gap:10}}><Mark/><span style={{...mono,fontSize:10,letterSpacing:"2.5px",textTransform:"uppercase",color:C.muted}}>Cohort</span></div>
-      <button style={{...mono,fontSize:10,letterSpacing:"1px",color:C.muted,textTransform:"uppercase"}} onClick={refresh}>Refresh</button>
+  {/* ═══ HOME ═══ */}
+  {scr==="home"&&me&&<div style={pg}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+      <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:24}}>✦</span><span style={{fontSize:14,fontWeight:800,color:C.ink}}>Cohort</span></div>
+      <button style={{fontSize:12,fontWeight:700,color:C.green,padding:"8px 16px",borderRadius:100,border:`2px solid ${C.greenPale}`,background:C.greenPale}} onClick={refresh}>Refresh</button>
     </div>
 
     {mc?<>
-      {/* ═══ THE CIRCLE LEDGER ═══ */}
-      {/* This week's gathering — the primary object */}
-      {cw&&!cw.past&&<div style={{borderTop:`1px solid ${C.green}`,borderBottom:`1px solid ${C.line}`,padding:"24px 0",marginBottom:0}} className="enter">
-        <div style={{...mono,fontSize:10,letterSpacing:"2px",textTransform:"uppercase",color:C.green,marginBottom:12}}>This {NF[mc.night]}</div>
-        <div style={{...display,fontSize:22,color:C.bright,marginBottom:4}}>{cw.date}</div>
-        <div style={{fontSize:14,color:C.text,marginBottom:12}}>{mc.venue?.name}, {mc.hood} · 7:30 PM</div>
+      {cw&&!cw.past&&<GradHeader gradient={C.grad1} style={{marginBottom:16}} className="pop">
+        <div style={{fontSize:12,fontWeight:700,opacity:.75,marginBottom:8}}>THIS {NF[mc.night].toUpperCase()}</div>
+        <div style={{fontSize:24,fontWeight:800,marginBottom:4}}>{cw.long}</div>
+        <div style={{fontSize:14,opacity:.85,marginBottom:16}}>{mc.venue?.name} · {mc.hood} · 7:30 PM</div>
         <div style={{display:"flex",gap:12,alignItems:"center"}}>
-          <button style={myR.has(cw.week)?s.smG:s.sm} onClick={()=>doRsvp(cw.week)}>{myR.has(cw.week)?"Going":"RSVP"}</button>
-          {mc.venue?.beli&&<a href={`https://bfrnd.link/${mc.venue.beli}`} target="_blank" rel="noopener" style={{fontSize:12}}>Reserve on Beli</a>}
-          <span style={{...mono,fontSize:10,color:C.muted}}>{rsvps.filter(r=>Number(r.week)===cw.week).length} confirmed</span>
+          <button style={{fontSize:13,fontWeight:800,padding:"10px 24px",borderRadius:100,background:myR.has(cw.week)?"#fff":"rgba(255,255,255,.2)",color:myR.has(cw.week)?C.green:"#fff",border:"2px solid rgba(255,255,255,.3)"}} onClick={()=>doRsvp(cw.week)}>{myR.has(cw.week)?"Going ✓":"RSVP"}</button>
+          <span style={{fontSize:12,opacity:.75}}>{rsvps.filter(r=>Number(r.week)===cw.week).length} going</span>
         </div>
-      </div>}
+      </GradHeader>}
 
-      {/* ═══ SEASON RIBBON ═══ */}
-      <div style={{display:"flex",borderBottom:`1px solid ${C.line}`,marginBottom:0}}>
-        {season?.map(w=>{const g=myR.has(w.week);const isCurrent=cw?.week===w.week;
-          return<div key={w.week} style={{flex:1,padding:"16px 0",textAlign:"center",borderRight:`1px solid ${C.line}`,background:isCurrent?C.greenBg:g?"#4A7C5908":"transparent",cursor:"pointer",opacity:w.past&&!g?.4:1}} onClick={()=>setOpenWk(openWk===w.week?null:w.week)}>
-            <div style={{...mono,fontSize:10,color:isCurrent?C.greenL:g?C.green:C.muted}}>{w.week}</div>
-            {g&&<div style={{width:4,height:4,borderRadius:2,background:C.green,margin:"4px auto 0"}}/>}
-          </div>;
-        })}
+      {/* Season ribbon */}
+      <div style={{display:"flex",gap:6,marginBottom:16}}>
+        {season?.map(w=>{const g=myR.has(w.week);const cur=cw?.week===w.week;return<button key={w.week} style={{flex:1,padding:"12px 0",borderRadius:12,background:cur?C.greenPale:g?C.greenPale+"80":C.white,border:`2px solid ${cur?C.green:g?C.greenPale:C.border}`,textAlign:"center",opacity:w.past&&!g?.4:1}} onClick={()=>setOpenWk(openWk===w.week?null:w.week)}>
+          <div style={{fontSize:13,fontWeight:cur?800:600,color:cur?C.green:g?C.greenLight:C.muted}}>{w.week}</div>
+          {g&&<div style={{width:5,height:5,borderRadius:3,background:C.green,margin:"3px auto 0"}}/>}
+        </button>;})}
       </div>
 
-      {/* Expanded week */}
-      {openWk&&<div style={{background:C.surface,borderBottom:`1px solid ${C.line}`,padding:"20px",animation:"fadeIn .2s ease"}}>
-        <div style={{...mono,fontSize:10,color:C.green,letterSpacing:"2px",textTransform:"uppercase",marginBottom:8}}>Week {openWk} · {RITUALS[openWk-1]?.t}</div>
-        <div style={{fontSize:14,color:C.text,lineHeight:1.65,marginBottom:12}}>{RITUALS[openWk-1]?.p}</div>
-        <button style={myR.has(openWk)?s.smG:s.sm} onClick={()=>doRsvp(openWk)}>{myR.has(openWk)?"Going":"RSVP"}</button>
+      {openWk&&<div style={{background:C.greenPale,borderRadius:18,padding:"20px",marginBottom:16,animation:"popIn .3s ease"}}>
+        <div style={{fontSize:12,fontWeight:800,color:C.green,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}}>Week {openWk} · {RITUALS[openWk-1]?.t}</div>
+        <div style={{fontSize:14,color:C.text,lineHeight:1.6}}>{RITUALS[openWk-1]?.p}</div>
       </div>}
 
-      {/* Weekly ritual */}
-      {ritual&&<div style={{borderBottom:`1px solid ${C.line}`,padding:"20px 0"}}>
-        <div style={{...mono,fontSize:10,color:C.brass,letterSpacing:"2px",textTransform:"uppercase",marginBottom:8}}>Week {ritual.w} ritual · {ritual.t}</div>
-        <div style={{...display,fontSize:15,fontStyle:"italic",color:C.body,lineHeight:1.6}}>{ritual.p}</div>
-        {ritual.trust&&<div style={{fontSize:12,color:C.green,marginTop:8}}>{ritual.trust}</div>}
+      {ritual&&<div style={{background:C.brownPale,borderRadius:18,padding:"20px",marginBottom:16}}>
+        <div style={{fontSize:12,fontWeight:800,color:C.brown,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}}>🕯️ Week {ritual.w} ritual</div>
+        <div style={{fontSize:15,color:C.ink,lineHeight:1.6,fontStyle:"italic"}}>{ritual.p}</div>
       </div>}
 
-      {/* Pair rotation */}
-      {buddy&&<div style={{borderBottom:`1px solid ${C.line}`,padding:"20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div><div style={{...mono,fontSize:10,color:C.muted,letterSpacing:"2px",textTransform:"uppercase",marginBottom:6}}>1:1 this week</div><div style={{fontSize:14,color:C.body}}>{buddy.name}</div><div style={{fontSize:12,color:C.muted}}>Coffee or a walk. Just you two.</div></div>
+      {buddy&&<div style={{background:C.purplePale,borderRadius:18,padding:"16px 20px",marginBottom:16,display:"flex",alignItems:"center",gap:14}}>
+        <Avatar name={buddy.name} size={40}/>
+        <div><div style={{fontSize:12,fontWeight:800,color:C.purple,textTransform:"uppercase",letterSpacing:"1px"}}>☕ Coffee buddy</div><div style={{fontSize:15,fontWeight:600,color:C.ink}}>{buddy.name}</div></div>
       </div>}
 
-      {/* Members roster — not cards, a ledger */}
-      <div style={{borderBottom:`1px solid ${C.line}`,padding:"20px 0"}}>
-        <div style={{...mono,fontSize:10,color:C.muted,letterSpacing:"2px",textTransform:"uppercase",marginBottom:12}}>Circle {mc.name} {mc.number} · {mc.member_ids.length} members</div>
-        <div style={{display:"flex",gap:20,overflowX:"auto",paddingBottom:4}}>
-          {[me,...members].map((m,i)=>{const isMe=m.id===me.id;return<div key={m.id} style={{flexShrink:0,textAlign:"center",cursor:isMe?"default":"pointer"}} onClick={isMe?undefined:()=>setOpenMem(openMem===i?null:i)}>
-            <div style={{width:36,height:36,borderRadius:18,background:isMe?C.greenBg:`hsl(${((m.name||"").charCodeAt(0)*47+120)%360},15%,18%)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:500,color:isMe?C.greenL:C.text,margin:"0 auto 6px"}}>{(m.name||"?")[0]}</div>
-            <div style={{fontSize:11,color:isMe?C.greenL:C.text}}>{isMe?"You":m.name}</div>
-          </div>;})}
+      <div style={{marginBottom:16}}>
+        <div style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px",marginBottom:12}}>Your circle · {mc.name} {mc.number}</div>
+        <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:4}}>
+          <div style={{textAlign:"center",flexShrink:0}}><Avatar name={me.name} size={48} me/><div style={{fontSize:11,fontWeight:700,color:C.green,marginTop:4}}>You</div></div>
+          {members.map(m=><div key={m.id} style={{textAlign:"center",flexShrink:0,cursor:"pointer"}} onClick={()=>setOpenMem(openMem===m.id?null:m.id)}><Avatar name={m.name} size={48}/><div style={{fontSize:11,fontWeight:600,color:C.text,marginTop:4}}>{m.name}</div></div>)}
         </div>
-        {openMem!==null&&openMem>0&&members[openMem-1]&&<div style={{marginTop:16,paddingTop:16,borderTop:`1px solid ${C.line}`,animation:"fadeIn .2s ease"}}>
-          {(()=>{const m=members[openMem-1];return<>
-            <div style={{fontSize:15,fontWeight:500,color:C.bright,marginBottom:4}}>{m.name}, {m.age}</div>
-            {m.bio&&<div style={{fontSize:13,color:C.text,lineHeight:1.6,marginBottom:8}}>{m.bio}</div>}
-            {m.life_stage&&<div style={{fontSize:12,color:C.green,marginBottom:4}}>{STAGES.find(ls=>ls.id===m.life_stage)?.l}</div>}
-            {m.intention&&<div style={{fontSize:12,color:C.muted,marginBottom:8}}>Looking for: {INTENTIONS.find(it=>it.id===m.intention)?.l}</div>}
-            {(m.prompts||[]).filter(p=>p.a).map((p,j)=><div key={j} style={{marginBottom:8}}><div style={{...mono,fontSize:10,color:C.muted,marginBottom:2}}>{p.q}</div><div style={{fontSize:13,color:C.body,lineHeight:1.5}}>{p.a}</div></div>)}
-            <div style={{fontSize:12,color:C.muted}}>{(m.interests||[]).join(" · ")}</div>
-            {(m.instagram||m.beli)&&<div style={{display:"flex",gap:12,marginTop:8}}>{m.instagram&&<a href={`https://instagram.com/${m.instagram.replace("@","")}`} target="_blank" rel="noopener" style={{fontSize:11}}>Instagram</a>}{m.beli&&<a href={`https://bfrnd.link/${m.beli}`} target="_blank" rel="noopener" style={{fontSize:11}}>Beli</a>}</div>}
-          </>;})()}
-        </div>}
+        {openMem&&members.find(m=>m.id===openMem)&&(()=>{const m=members.find(x=>x.id===openMem);return<div style={{background:C.white,borderRadius:18,padding:"20px",marginTop:12,border:`2px solid ${C.border}`,animation:"popIn .3s ease"}}>
+          <div style={{fontSize:16,fontWeight:800,color:C.ink}}>{m.name}{m.age&&`, ${m.age}`}</div>
+          {m.bio&&<div style={{fontSize:14,color:C.text,lineHeight:1.6,marginTop:6}}>{m.bio}</div>}
+          {m.life_stage&&<div style={{fontSize:13,color:C.green,marginTop:6}}>{STAGES.find(x=>x.id===m.life_stage)?.e} {STAGES.find(x=>x.id===m.life_stage)?.l}</div>}
+          {(m.prompts||[]).filter(p=>p.a).map((p,j)=><div key={j} style={{marginTop:10}}><div style={{fontSize:12,color:C.muted,fontWeight:600}}>{p.q}</div><div style={{fontSize:14,color:C.ink,marginTop:2}}>{p.a}</div></div>)}
+          <div style={{fontSize:12,color:C.muted,marginTop:8}}>{(m.interests||[]).join(" · ")}</div>
+        </div>;})()}
       </div>
 
-      {/* Recent posts — not cards, ledger entries */}
-      {posts.length>0&&<div style={{borderBottom:`1px solid ${C.line}`,padding:"20px 0"}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
-          <span style={{...mono,fontSize:10,color:C.muted,letterSpacing:"2px",textTransform:"uppercase"}}>Recent</span>
-          <button style={{fontSize:11,color:C.greenL}} onClick={()=>go("circle")}>All</button>
-        </div>
-        {posts.slice(0,3).map(p=><div key={p.id} style={{marginBottom:12}}>
-          <div style={{...mono,fontSize:10,color:C.muted}}>{p.user_name} · {ago(p.created_at)}</div>
-          <div style={{fontSize:14,color:C.body,lineHeight:1.6,marginTop:2}}>{p.content}</div>
+      {posts.length>0&&<div style={{marginBottom:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px"}}>Recent</span><button style={{fontSize:13,fontWeight:700,color:C.green}} onClick={()=>{setTab("feed");go("circle");}}>See all</button></div>
+        {posts.slice(0,2).map(p=><div key={p.id} style={{background:C.white,borderRadius:16,padding:"16px",border:`2px solid ${C.border}`,marginBottom:8}}>
+          <div style={{fontSize:12,fontWeight:700,color:C.muted}}>{p.user_name} · {ago(p.created_at)}</div>
+          <div style={{fontSize:14,color:C.ink,lineHeight:1.6,marginTop:4}}>{p.content}</div>
         </div>)}
       </div>}
 
-      {/* Open asks */}
-      {asks.filter(a=>!a.resolved).length>0&&<div style={{borderBottom:`1px solid ${C.line}`,padding:"20px 0"}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
-          <span style={{...mono,fontSize:10,color:C.muted,letterSpacing:"2px",textTransform:"uppercase"}}>Open asks</span>
-          <button style={{fontSize:11,color:C.greenL}} onClick={()=>go("ask")}>All</button>
-        </div>
-        {asks.filter(a=>!a.resolved).slice(0,2).map(a=><div key={a.id} style={{marginBottom:12}}>
-          <div style={{...mono,fontSize:10,color:a.ask_type==="need"?C.brass:C.green}}>{a.ask_type==="need"?"NEEDS":"OFFERING"} · {a.user_name}</div>
-          <div style={{fontSize:14,color:C.body,marginTop:2}}>{a.content}</div>
-        </div>)}
-      </div>}
-
-      {/* Stats — minimal, not dashboard */}
-      <div style={{display:"flex",borderBottom:`1px solid ${C.line}`}}>
-        {[{l:"Season",v:mc.season||1},{l:"Your rate",v:Math.round(myR.size/Math.max(1,season?.filter(w=>w.past).length||1)*100)+"%"},{l:"Memories",v:memos.length}].map((x,i)=><div key={i} style={{flex:1,padding:"16px 0",textAlign:"center",borderRight:i<2?`1px solid ${C.line}`:"none"}}><div style={{...mono,fontSize:9,color:C.muted,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4}}>{x.l}</div><div style={{...display,fontSize:20,color:C.bright}}>{x.v}</div></div>)}
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        {[{l:"Season",v:mc.season||1,bg:C.greenPale,c:C.green},{l:"Rate",v:Math.round(myR.size/Math.max(1,season?.filter(w=>w.past).length||1)*100)+"%",bg:C.brownPale,c:C.brown},{l:"Memories",v:memos.length,bg:C.purplePale,c:C.purple}].map((x,i)=><div key={i} style={{flex:1,background:x.bg,borderRadius:16,padding:"16px 12px",textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:x.c}}>{x.v}</div><div style={{fontSize:11,fontWeight:700,color:x.c,opacity:.7,marginTop:2}}>{x.l}</div></div>)}
       </div>
-
-      <div style={{display:"flex",gap:1,marginTop:1}}><button style={{...s.btnO,flex:1}} onClick={share}>Invite</button><button style={{...s.btnO,flex:1}} onClick={()=>go("explore")}>Explore</button></div>
-
+      <div style={{display:"flex",gap:8}}><button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,background:C.white,color:C.ink}} onClick={share}>Invite 📤</button><button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,background:C.white,color:C.ink}} onClick={()=>go("explore")}>Explore 🗺️</button></div>
     </>:<>
-      {/* ─── WAITLIST ─── */}
-      <div className="enter">
-        <h2 style={{...s.h2,marginBottom:8}}>Welcome, {me.name}.</h2>
-        <p style={{...s.p,marginBottom:28}}>You're on the list for {me.neighborhood}. Circles form when 2+ people share a neighborhood and a night.</p>
-        <div style={{...s.panel}}>
-          <div style={{display:"flex",justifyContent:"space-between"}}>
-            <div><div style={{...mono,fontSize:10,color:C.muted,letterSpacing:"1.5px",textTransform:"uppercase"}}>In your area</div><div style={{...display,fontSize:28,color:C.bright,marginTop:4}}>{hoodWait.length+1}</div></div>
-            <div style={{textAlign:"right"}}><div style={{...mono,fontSize:10,color:C.muted,letterSpacing:"1.5px",textTransform:"uppercase"}}>Need</div><div style={{...display,fontSize:28,color:C.bright,marginTop:4}}>2</div></div>
+      <div className="pop">
+        <div style={{fontSize:48,marginBottom:12}}>👋</div>
+        <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Hey, {me.name}!</h2>
+        <p style={{fontSize:15,color:C.muted,lineHeight:1.6,marginBottom:24}}>You're on the waitlist for <strong style={{color:C.ink}}>{me.neighborhood}</strong>. Circles form at 2+ people.</p>
+        <GradHeader gradient={C.grad2} style={{marginBottom:24}}>
+          <div style={{display:"flex",justifyContent:"space-around"}}>
+            <div style={{textAlign:"center"}}><div style={{fontSize:32,fontWeight:800}}>{hoodWait.length+1}</div><div style={{fontSize:12,opacity:.8}}>In your area</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:32,fontWeight:800}}>2</div><div style={{fontSize:12,opacity:.8}}>Needed</div></div>
           </div>
+        </GradHeader>
+        <div style={{display:"flex",gap:8}}>
+          <button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,color:C.ink}} onClick={share}>Share 📤</button>
+          <button style={{flex:1,fontSize:14,fontWeight:800,padding:"14px",borderRadius:100,background:C.green,color:"#fff"}} onClick={refresh}>Check matches</button>
         </div>
-        <div style={s.hr}/>
-        <div style={{display:"flex",gap:1}}><button style={{...s.btnO,flex:1}} onClick={share}>Share link</button><button style={{...s.btn,flex:1}} onClick={refresh}>Check</button></div>
       </div>
     </>}
     <Nav/>
   </div>}
 
-  {/* ═══ CIRCLE — Feed + Memories ═══ */}
-  {scr==="circle"&&me&&mc&&<div style={s.page}>
-    <div style={s.tag}>Circle {mc.name}</div>
-    <div style={{display:"flex",borderBottom:`1px solid ${C.line}`,marginBottom:24}}>
-      {[["feed","Feed"],["memories","Memories"]].map(([k,l])=><button key={k} style={{...s.itoggle(tab===k),flex:1,textAlign:"center"}} onClick={()=>setTab(k)}>{l}</button>)}
+  {/* ═══ CIRCLE ═══ */}
+  {scr==="circle"&&me&&mc&&<div style={pg}>
+    <div style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px",marginBottom:16}}>Circle {mc.name}</div>
+    <div style={{display:"flex",gap:0,marginBottom:24,background:C.white,borderRadius:100,border:`2px solid ${C.border}`,overflow:"hidden"}}>
+      {[["feed","Feed"],["memories","Memories"]].map(([k,l])=><button key={k} style={{flex:1,padding:"12px 0",fontSize:14,fontWeight:tab===k?800:500,color:tab===k?C.green:C.muted,background:tab===k?C.greenPale:"transparent"}} onClick={()=>setTab(k)}>{l}</button>)}
     </div>
-
     {tab==="feed"&&<div>
-      <div style={{marginBottom:24}}><textarea style={{minHeight:56,marginBottom:8}} value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Share with your circle..."/><div style={{display:"flex",justifyContent:"flex-end"}}><button style={{...s.smG,...(!newPost.trim()?s.dis:{})}} onClick={doPost}>Post</button></div></div>
-      {posts.map(p=><div key={p.id} style={{borderBottom:`1px solid ${C.line}`,padding:"16px 0"}}><div style={{...mono,fontSize:10,color:C.muted}}>{p.user_name}{p.user_id===me.id?" (you)":""} · {ago(p.created_at)}</div><div style={{fontSize:14,color:C.body,lineHeight:1.65,marginTop:4,whiteSpace:"pre-wrap"}}>{p.content}</div></div>)}
-      {posts.length===0&&<div style={{padding:40,textAlign:"center",color:C.muted}}>Nothing yet.</div>}
-    </div>}
-
-    {tab==="memories"&&<div>
-      <div style={{marginBottom:24}}><textarea style={{minHeight:56,marginBottom:8}} value={memInput} onChange={e=>setMemInput(e.target.value)} placeholder="A quote, a moment, an inside joke..."/><div style={{display:"flex",justifyContent:"flex-end"}}><button style={{...s.sm,borderColor:C.brass,color:C.brass,...(!memInput.trim()?s.dis:{})}} onClick={doMem}>Save memory</button></div></div>
-      {memos.map(m=><div key={m.id} style={{borderLeft:`2px solid ${C.brass}`,paddingLeft:16,marginBottom:20}}>
-        <div style={{...mono,fontSize:10,color:C.muted}}>Week {m.week} · {m.user_name}</div>
-        <div style={{...display,fontSize:15,fontStyle:"italic",color:C.body,lineHeight:1.6,marginTop:4}}>{m.content}</div>
+      <div style={{background:C.white,borderRadius:18,padding:"16px",border:`2px solid ${C.border}`,marginBottom:20}}>
+        <textarea style={{minHeight:56,marginBottom:8}} value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Share something..."/>
+        <div style={{display:"flex",justifyContent:"flex-end"}}><button style={{fontSize:13,fontWeight:800,padding:"10px 24px",borderRadius:100,background:C.green,color:"#fff",...(!newPost.trim()?{opacity:.3}:{})}} onClick={doPost}>Post</button></div>
+      </div>
+      {posts.map(p=><div key={p.id} style={{background:C.white,borderRadius:16,padding:"16px",border:`2px solid ${C.border}`,marginBottom:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}><Avatar name={p.user_name} size={28}/><span style={{fontSize:13,fontWeight:700,color:C.ink}}>{p.user_name}</span><span style={{fontSize:12,color:C.muted}}>{ago(p.created_at)}</span></div>
+        <div style={{fontSize:14,color:C.ink,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{p.content}</div>
       </div>)}
-      {memos.length===0&&<div style={{padding:40,textAlign:"center",color:C.muted}}>No memories yet. After your first night, capture what mattered.</div>}
+      {posts.length===0&&<div style={{padding:48,textAlign:"center",color:C.muted,fontSize:15}}>Nothing yet 🌱</div>}
+    </div>}
+    {tab==="memories"&&<div>
+      <div style={{background:C.white,borderRadius:18,padding:"16px",border:`2px solid ${C.border}`,marginBottom:20}}>
+        <textarea style={{minHeight:56,marginBottom:8}} value={memInput} onChange={e=>setMemInput(e.target.value)} placeholder="A quote, a moment, an inside joke..."/>
+        <div style={{display:"flex",justifyContent:"flex-end"}}><button style={{fontSize:13,fontWeight:800,padding:"10px 24px",borderRadius:100,background:C.brown,color:"#fff",...(!memInput.trim()?{opacity:.3}:{})}} onClick={doMem}>Save</button></div>
+      </div>
+      {memos.map(m=><div key={m.id} style={{background:C.brownPale,borderRadius:16,padding:"16px",marginBottom:8}}>
+        <div style={{fontSize:12,fontWeight:700,color:C.brown}}>Week {m.week} · {m.user_name}</div>
+        <div style={{fontSize:15,color:C.ink,lineHeight:1.6,fontStyle:"italic",marginTop:4}}>"{m.content}"</div>
+      </div>)}
+      {memos.length===0&&<div style={{padding:48,textAlign:"center",color:C.muted}}>No memories yet ✨</div>}
     </div>}
     <Nav/>
   </div>}
 
   {/* ═══ RITUALS ═══ */}
-  {scr==="ritual"&&me&&mc&&<div style={s.page}>
-    <div style={s.tag}>Rituals</div>
-    <h2 style={{...s.h2,marginBottom:24}}>The 8-week progression</h2>
-    {RITUALS.map((r,i)=>{const done=season&&season[i]?.past;const current=cw?.week===r.w;
-      return<div key={i} style={{borderBottom:`1px solid ${C.line}`,padding:"20px 0",opacity:done&&!current?.5:1}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-          <div>
-            <div style={{...mono,fontSize:10,color:current?C.green:C.muted,letterSpacing:"2px"}}>{String(r.w).padStart(2,"0")} · {r.t}{current?" — THIS WEEK":""}</div>
-            <div style={{...display,fontSize:15,color:C.body,lineHeight:1.6,marginTop:6,fontStyle:"italic"}}>{r.p}</div>
+  {scr==="ritual"&&me&&mc&&<div style={pg}>
+    <div style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>The 8-week journey</div>
+    <h2 style={{fontSize:24,fontWeight:800,color:C.ink,marginBottom:20}}>Rituals 🕯️</h2>
+    {RITUALS.map((r,i)=>{const done=season&&season[i]?.past;const cur=cw?.week===r.w;const going=myR.has(r.w);
+      return<div key={i} style={{background:cur?C.greenPale:C.white,borderRadius:18,padding:"18px 20px",border:`2px solid ${cur?C.green:C.border}`,marginBottom:10,opacity:done&&!cur?.5:1}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:12,fontWeight:800,color:cur?C.green:C.muted,textTransform:"uppercase",letterSpacing:"1px"}}>Week {r.w}{cur?" · Now":""}</div>
+            <div style={{fontSize:16,fontWeight:700,color:C.ink,marginTop:4}}>{r.t}</div>
+            <div style={{fontSize:14,color:C.text,lineHeight:1.6,marginTop:4,fontStyle:"italic"}}>{r.p}</div>
           </div>
-          {season&&!season[i]?.past&&<button style={myR.has(r.w)?s.smG:s.sm} onClick={()=>doRsvp(r.w)}>{myR.has(r.w)?"Going":"RSVP"}</button>}
+          {season&&!season[i]?.past&&<button style={{fontSize:12,fontWeight:800,padding:"8px 18px",borderRadius:100,background:going?C.green:C.white,color:going?"#fff":C.green,border:`2px solid ${C.green}`,flexShrink:0,marginLeft:12}} onClick={()=>doRsvp(r.w)}>{going?"Going ✓":"RSVP"}</button>}
         </div>
       </div>;
     })}
     <Nav/>
   </div>}
 
-  {/* ═══ ASK / OFFER ═══ */}
-  {scr==="ask"&&me&&mc&&<div style={s.page}>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-      <div><div style={s.tag}>Ask & offer</div><div style={{...display,fontSize:20,color:C.bright}}>Mutual aid</div></div>
-      <button style={s.smG} onClick={()=>setShowAsk(!showAsk)}>{showAsk?"Cancel":"+ New"}</button>
+  {/* ═══ ASK/OFFER ═══ */}
+  {scr==="ask"&&me&&mc&&<div style={pg}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+      <h2 style={{fontSize:24,fontWeight:800,color:C.ink}}>Ask & Offer 🤝</h2>
+      <button style={{fontSize:13,fontWeight:800,padding:"10px 20px",borderRadius:100,background:C.green,color:"#fff"}} onClick={()=>setShowAsk(!showAsk)}>{showAsk?"Cancel":"+ New"}</button>
     </div>
-
-    {showAsk&&<div style={{borderTop:`1px solid ${C.line}`,borderBottom:`1px solid ${C.line}`,padding:"20px 0",marginBottom:20,animation:"fadeIn .2s ease"}}>
-      <div style={{display:"flex",marginBottom:16}}>
-        <button style={{...s.itoggle(askForm.ask_type==="need"),flex:1,textAlign:"center"}} onClick={()=>setAskForm(f=>({...f,ask_type:"need"}))}>I need...</button>
-        <button style={{...s.itoggle(askForm.ask_type==="offer"),flex:1,textAlign:"center"}} onClick={()=>setAskForm(f=>({...f,ask_type:"offer"}))}>I can help...</button>
+    {showAsk&&<div style={{background:C.white,borderRadius:18,padding:"20px",border:`2px solid ${C.border}`,marginBottom:20,animation:"popIn .3s ease"}}>
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        <button style={{flex:1,padding:"12px",borderRadius:100,fontSize:14,fontWeight:askForm.ask_type==="need"?800:500,background:askForm.ask_type==="need"?C.coralPale:C.white,color:askForm.ask_type==="need"?C.coral:C.muted,border:`2px solid ${askForm.ask_type==="need"?C.coral:C.border}`}} onClick={()=>setAskForm(f=>({...f,ask_type:"need"}))}>I need...</button>
+        <button style={{flex:1,padding:"12px",borderRadius:100,fontSize:14,fontWeight:askForm.ask_type==="offer"?800:500,background:askForm.ask_type==="offer"?C.greenPale:C.white,color:askForm.ask_type==="offer"?C.green:C.muted,border:`2px solid ${askForm.ask_type==="offer"?C.green:C.border}`}} onClick={()=>setAskForm(f=>({...f,ask_type:"offer"}))}>I can help...</button>
       </div>
       <select style={{marginBottom:12}} value={askForm.category} onChange={e=>setAskForm(f=>({...f,category:e.target.value}))}>{ASK_CATS.map(c=><option key={c} value={c}>{c}</option>)}</select>
       <textarea style={{minHeight:64,marginBottom:12}} value={askForm.content} onChange={e=>setAskForm(f=>({...f,content:e.target.value}))} placeholder={askForm.ask_type==="need"?"What do you need?":"What can you offer?"}/>
-      <button style={{...s.btn,...(!askForm.content.trim()?s.dis:{})}} onClick={doAsk}>Post</button>
+      <button style={{fontSize:14,fontWeight:800,padding:"14px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(!askForm.content.trim()?{opacity:.3}:{})}} onClick={doAsk}>Post</button>
     </div>}
-
-    {asks.filter(a=>!a.resolved).map(a=><div key={a.id} style={{borderBottom:`1px solid ${C.line}`,padding:"16px 0"}}>
-      <div style={{...mono,fontSize:10,color:a.ask_type==="need"?C.brass:C.green,letterSpacing:"1.5px"}}>{a.ask_type==="need"?"NEEDS":"OFFERING"} · {a.category} · {a.user_name} · {ago(a.created_at)}</div>
-      <div style={{fontSize:14,color:C.body,lineHeight:1.5,marginTop:4}}>{a.content}</div>
+    {asks.filter(a=>!a.resolved).map(a=><div key={a.id} style={{background:a.ask_type==="need"?C.coralPale:C.greenPale,borderRadius:16,padding:"16px",marginBottom:8}}>
+      <div style={{fontSize:12,fontWeight:800,color:a.ask_type==="need"?C.coral:C.green,textTransform:"uppercase",letterSpacing:"1px"}}>{a.ask_type==="need"?"Needs":"Offering"} · {a.category}</div>
+      <div style={{fontSize:15,color:C.ink,lineHeight:1.5,marginTop:6}}>{a.content}</div>
+      <div style={{fontSize:12,color:C.muted,marginTop:6}}>{a.user_name} · {ago(a.created_at)}</div>
     </div>)}
-
-    {asks.length===0&&!showAsk&&<div style={{padding:40,textAlign:"center",color:C.muted}}>Nothing yet. "Need a gym buddy." "Can help with resumes."</div>}
+    {asks.length===0&&!showAsk&&<div style={{padding:48,textAlign:"center",color:C.muted}}>Nothing yet. "Need a gym buddy" · "Can help with resumes" 💪</div>}
     <Nav/>
   </div>}
 
-  {/* ═══ GRADUATION ═══ */}
-  {scr==="graduation"&&me&&mc&&<div style={s.page}>
-    <div style={s.tag}>Season complete</div>
-    <h2 style={{...s.h2,marginBottom:24}}>What continues</h2>
-    {GRAD.map((g,i)=><button key={g.id} style={{...s.panel,display:"block",width:"100%",textAlign:"left",animation:`enter .4s ease ${i*.08}s both`}} onClick={()=>flash("Coming soon: "+g.l)}>
-      <div style={{fontSize:15,fontWeight:500,color:C.bright,marginBottom:4}}>{g.l}</div>
-      <div style={{fontSize:13,color:C.muted}}>{g.d}</div>
-    </button>)}
-    <div style={s.hr}/><button style={s.btnO} onClick={()=>go("home")}>Back</button><Nav/>
+  {/* ═══ EXPLORE ═══ */}
+  {scr==="explore"&&<div style={pg}>
+    <h2 style={{fontSize:24,fontWeight:800,color:C.ink,marginBottom:20}}>Neighborhoods 🗺️</h2>
+    {(()=>{const st={};users.forEach(u=>{if(u.neighborhood)st[u.neighborhood]=(st[u.neighborhood]||0)+1;});return Object.entries(st).sort((a,b)=>b[1]-a[1]).map(([h,ct])=>{const cc=cohorts.filter(c=>c.hood===h).length;return<div key={h} style={{background:C.white,borderRadius:16,padding:"16px 20px",border:`2px solid ${C.border}`,marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div><div style={{fontSize:15,fontWeight:700,color:C.ink}}>{h}</div>{cc>0&&<div style={{fontSize:12,fontWeight:700,color:C.green,marginTop:2}}>{pl(cc,"circle")} ✦</div>}</div>
+      <div style={{fontSize:14,fontWeight:800,color:C.muted}}>{ct}</div>
+    </div>;});})()}
+    <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:16}} onClick={()=>go(me?"home":"signup")}>{me?"Back":"Join"}</button>
+    {me&&<Nav/>}
   </div>}
 
   {/* ═══ PROFILE ═══ */}
-  {scr==="profile"&&me&&<div style={s.page}>
-    <div style={s.tag}>Profile</div>
-    <div style={{marginBottom:16}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Name</div><input value={form.name} onChange={e=>sF("name",e.target.value)}/></div>
-    <div style={{marginBottom:16}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Neighborhood</div><div style={{fontSize:14,color:C.muted,padding:"14px 0"}}>{me.neighborhood}</div></div>
-    <div style={{marginBottom:16}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Bio</div><textarea style={{minHeight:72}} value={form.bio} onChange={e=>sF("bio",e.target.value)}/></div>
-    <div style={{marginBottom:16}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Interests</div>
-    <div style={{display:"flex",flexWrap:"wrap"}}>{INTERESTS.map(x=><button key={x} style={{...s.itoggle(form.interests.includes(x)),padding:"8px 12px"}} onClick={()=>tog("interests",x,5)}>{x}</button>)}</div></div>
-    <div style={{marginBottom:16}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Nights</div>
-    <div style={{display:"flex"}}>{NIGHTS.map(x=><button key={x} style={{...s.itoggle(form.nights.includes(x)),flex:1,textAlign:"center"}} onClick={()=>tog("nights",x)}>{x}</button>)}</div></div>
-    <div style={s.hr}/>
-    <div style={{display:"flex",gap:12,marginBottom:16}}><div style={{flex:1}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Instagram</div><input value={form.instagram} onChange={e=>sF("instagram",e.target.value)}/></div><div style={{flex:1}}><div style={{...s.small,marginBottom:8,textTransform:"uppercase",letterSpacing:"1.5px"}}>Beli</div><input value={form.beli} onChange={e=>sF("beli",e.target.value)}/></div></div>
-    <button style={{...s.btn,...(saving?s.dis:{})}} onClick={async()=>{setSaving(true);const u={...me,name:form.name.trim()||me.name,bio:form.bio.trim(),interests:form.interests.length?form.interests:me.interests,nights:form.nights.length?form.nights:me.nights,instagram:form.instagram.trim(),beli:form.beli.trim()};await DB.put("users",u);DB.setMid(u.id);setMe(u);flash("Saved.");setSaving(false);go("home");}}>{saving?"Saving...":"Save"}</button>
-    <div style={s.hr}/><button style={{fontSize:13,color:C.wine,width:"100%",textAlign:"center",padding:14}} onClick={logout}>Log out</button>
-    <div style={{textAlign:"center",marginTop:10}}><button style={{fontSize:13,color:C.muted}} onClick={()=>go("home")}>Back</button></div>
+  {scr==="profile"&&me&&<div style={pg}>
+    <div style={{textAlign:"center",marginBottom:24}}><Avatar name={me.name} size={72} me/><div style={{fontSize:20,fontWeight:800,color:C.ink,marginTop:12}}>{me.name}, {me.age}</div><div style={{fontSize:14,color:C.muted}}>{me.neighborhood}</div></div>
+    <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Name</div><input value={form.name} onChange={e=>sF("name",e.target.value)}/></div>
+    <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Bio</div><textarea style={{minHeight:72}} value={form.bio} onChange={e=>sF("bio",e.target.value)}/></div>
+    <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Interests</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{INTERESTS.map(x=><Pill key={x} on={form.interests.includes(x)} onClick={()=>tog("interests",x,5)} style={{fontSize:12,padding:"6px 14px"}}>{x}</Pill>)}</div></div>
+    <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Nights</div><div style={{display:"flex",gap:6}}>{NIGHTS.map(x=><Pill key={x} on={form.nights.includes(x)} onClick={()=>tog("nights",x)} style={{flex:1,textAlign:"center",fontSize:12,padding:"8px"}}>{x}</Pill>)}</div></div>
+    <div style={{display:"flex",gap:12,marginBottom:16}}><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Instagram</div><input value={form.instagram} onChange={e=>sF("instagram",e.target.value)}/></div><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Beli</div><input value={form.beli} onChange={e=>sF("beli",e.target.value)}/></div></div>
+    <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(saving?{opacity:.3}:{})}} onClick={async()=>{setSaving(true);const u={...me,name:form.name.trim()||me.name,bio:form.bio.trim(),interests:form.interests.length?form.interests:me.interests,nights:form.nights.length?form.nights:me.nights,instagram:form.instagram.trim(),beli:form.beli.trim()};const ok=await DB.put("users",u);if(ok){DB.setMid(u.id);setMe(u);flash("✅ Saved!");}else flash("❌ Save failed");setSaving(false);go("home");}}>{saving?"Saving...":"Save changes"}</button>
+    <div style={{textAlign:"center",marginTop:24}}><button style={{fontSize:14,color:C.coral,fontWeight:700}} onClick={logout}>Log out</button></div>
     <Nav/>
   </div>}
 
   </div>);
 }
-
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
