@@ -216,8 +216,8 @@ END $$;
 // ═══════════════════════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════════════════════
-const SB_URL = "YOUR_SUPABASE_URL";
-const SB_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SB_URL = "https://bsfqjceduhktevjswalm.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZnFqY2VkdWhrdGV2anN3YWxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTgxNTMsImV4cCI6MjA5MTc5NDE1M30.N_3VvoUjm9Nz9swNm9KmYTz-RQDEZn186dz1AGh__kw";
 const hasSB = !SB_URL.startsWith("YOUR_");
 const sb = hasSB ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 
