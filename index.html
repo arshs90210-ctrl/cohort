@@ -24,49 +24,33 @@ select{-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xm
 @keyframes popIn{0%{opacity:0;transform:scale(.92) translateY(12px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(400px) rotate(720deg);opacity:0}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 .pop{animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both}
 .spinner{width:20px;height:20px;border:3px solid #E8E0D4;border-top-color:#2D7A4E;border-radius:50%;animation:spin .6s linear infinite}
 .bnav{position:fixed;bottom:0;left:0;right:0;background:#FFFBF5F0;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:2px solid #F0EBE2;display:flex;z-index:100;padding:6px 8px max(6px,env(safe-area-inset-bottom))}
 .bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;font-size:10px;font-weight:600;color:#B8AD9E;letter-spacing:.3px;border-radius:12px}
 .bnav button.on{color:#2D7A4E;background:#2D7A4E10}
 .bnav svg{width:22px;height:22px}
-.err-banner{background:#FFE8E8;border:2px solid #FF6B6B40;border-radius:14px;padding:14px 18px;margin:12px 0;font-size:13px;color:#CC3333;font-weight:500}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-// ═══ SUPABASE CONFIG ═══
 const SB_URL="https://bsfqjceduhktevjswalm.supabase.co";
 const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzZnFqY2VkdWhrdGV2anN3YWxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTgxNTMsImV4cCI6MjA5MTc5NDE1M30.N_3VvoUjm9Nz9swNm9KmYTz-RQDEZn186dz1AGh__kw";
-let sb=null;
-try{sb=window.supabase.createClient(SB_URL,SB_KEY);console.log("✅ Supabase client created");}catch(e){console.error("❌ Supabase client failed:",e);}
-
+let sb=null;try{sb=window.supabase.createClient(SB_URL,SB_KEY);}catch(e){console.error(e);}
 const{useState,useEffect,useCallback,useRef,useMemo}=React;
 
-// ═══ PALETTE ═══
-const C={
-  bg:"#FFFBF5",cream:"#FFF8EE",white:"#FFFFFF",
-  green:"#2D7A4E",greenLight:"#4CAF72",greenPale:"#E3F5E9",greenVivid:"#22C55E",
-  brown:"#8B6914",brownLight:"#D4A843",brownPale:"#FFF3D6",
-  coral:"#FF6B6B",coralPale:"#FFE8E8",
-  purple:"#7C5CFC",purplePale:"#EDE8FF",
-  ink:"#2D2418",text:"#5C4F3D",muted:"#A69B8B",faint:"#D4CCBE",
-  border:"#F0EBE2",borderD:"#E0D8CA",
-  grad1:"linear-gradient(135deg,#2D7A4E 0%,#4CAF72 50%,#22C55E 100%)",
-  grad2:"linear-gradient(135deg,#8B6914 0%,#D4A843 100%)",
-  grad3:"linear-gradient(135deg,#FF6B6B 0%,#FF8E53 100%)",
-  grad4:"linear-gradient(135deg,#7C5CFC 0%,#B794F4 100%)",
-};
+const C={bg:"#FFFBF5",cream:"#FFF8EE",white:"#FFFFFF",green:"#2D7A4E",greenLight:"#4CAF72",greenPale:"#E3F5E9",greenVivid:"#22C55E",brown:"#8B6914",brownLight:"#D4A843",brownPale:"#FFF3D6",coral:"#FF6B6B",coralPale:"#FFE8E8",purple:"#7C5CFC",purplePale:"#EDE8FF",ink:"#2D2418",text:"#5C4F3D",muted:"#A69B8B",faint:"#D4CCBE",border:"#F0EBE2",grad1:"linear-gradient(135deg,#2D7A4E 0%,#4CAF72 50%,#22C55E 100%)",grad2:"linear-gradient(135deg,#8B6914 0%,#D4A843 100%)",grad3:"linear-gradient(135deg,#FF6B6B 0%,#FF8E53 100%)",grad4:"linear-gradient(135deg,#7C5CFC 0%,#B794F4 100%)"};
 
-// ═══ DATA ═══
 const HOODS=["Upper East Side","Upper West Side","Midtown East","Midtown West","East Village","West Village","Lower East Side","SoHo / NoHo","Chelsea","Gramercy / Flatiron","Murray Hill","Hell's Kitchen","Harlem","Washington Heights","Williamsburg","Greenpoint","Park Slope","DUMBO / Brooklyn Heights","Bushwick","Astoria"];
 const INTERESTS=["Running","Cornhole","Volleyball","Basketball","Soccer","Climbing","Cycling","Hiking","Yoga","Boxing","Cooking","Wine","Coffee","Live Music","Comedy","Film","Reading","Art","Photography","Board Games","Pickleball","Tennis","Bowling","Kickball","Pool"];
 const NIGHTS=["Mon","Tue","Wed","Thu","Fri","Sat"];
 const NF={Mon:"Monday",Tue:"Tuesday",Wed:"Wednesday",Thu:"Thursday",Fri:"Friday",Sat:"Saturday"};
 const CNAMES=["Birch","Cedar","Slate","Ridge","Brook","Alder","Fern","Stone","Linden","Aspen","Moss","Laurel","Rowan","Sage","Hazel","Ember","Thistle","Wren","Elm","Flint"];
 const STAGES=[{id:"new-to-city",l:"New to the city",e:"🗽"},{id:"early-career",l:"Early career",e:"💼"},{id:"grad-school",l:"Grad school",e:"📖"},{id:"immigrant",l:"Immigrant / expat",e:"🌍"},{id:"rebuilding",l:"Fresh start",e:"🌱"},{id:"creative",l:"Creative / freelance",e:"🎨"},{id:"established",l:"Established",e:"🏡"},{id:"faith",l:"Faith-oriented",e:"🕊️"}];
-const INTENTIONS=[{id:"deep-friends",l:"Deep friendships",e:"💛",d:"People I'd actually call at 2am"},{id:"activity-crew",l:"Activity crew",e:"🏃",d:"A crew that does stuff together"},{id:"dinner-circle",l:"Dinner circle",e:"🍽️",d:"Weekly meals, real conversation"},{id:"newcomer",l:"Newcomer support",e:"🧭",d:"Other people figuring out NYC"},{id:"cultural",l:"Cultural community",e:"🌏",d:"People who share my background"},{id:"mens",l:"Men's group",e:"♂️",d:"Real talk, no performance"},{id:"womens",l:"Women's group",e:"♀️",d:"Safety, depth, solidarity"},{id:"mixed",l:"Surprise me",e:"🎲",d:"Expand my world"}];
+const INTENTIONS=[{id:"deep-friends",l:"Deep friendships",e:"💛",d:"People I'd actually call at 2am"},{id:"activity-crew",l:"Activity crew",e:"🏃",d:"A crew that does stuff"},{id:"dinner-circle",l:"Dinner circle",e:"🍽️",d:"Weekly meals, real conversation"},{id:"newcomer",l:"Newcomer support",e:"🧭",d:"Figuring out NYC together"},{id:"cultural",l:"Cultural community",e:"🌏",d:"People who share my background"},{id:"mens",l:"Men's group",e:"♂️",d:"Real talk, no performance"},{id:"womens",l:"Women's group",e:"♀️",d:"Safety, depth, solidarity"},{id:"mixed",l:"Surprise me",e:"🎲",d:"Expand my world"}];
 const CULTURAL=[{id:"low-drinking",l:"Low / no drinking 🫖"},{id:"family-style",l:"Family-style 🏠"},{id:"faith-friendly",l:"Faith-friendly 🕊️"},{id:"multilingual",l:"Multilingual 🗣️"},{id:"same-gender",l:"Same-gender ♾️"},{id:"introverted",l:"Introvert-friendly 🧘"},{id:"eastern",l:"Eastern social style 🌏"}];
 const COSTS=[{id:"free",l:"Free only 🌳",d:"Parks, walks, potlucks"},{id:"under-10",l:"Under $10 ☕",d:"Coffee, cheap eats"},{id:"under-20",l:"Under $20 🍺",d:"Most bars & restaurants"},{id:"flexible",l:"Flexible 🤷",d:"Whatever works"},{id:"host",l:"Rotating host 🏡",d:"Take turns hosting"}];
 const RITUALS=[{w:1,t:"Origin stories",p:"Where are you from — not the city, but the feeling of home."},{w:2,t:"What brought you here",p:"Why NYC? What surprised you when you arrived?"},{w:3,t:"What you're building",p:"What are you working toward? What feels missing?"},{w:4,t:"Show and tell",p:"Bring something. A photo, an object, a song. Share why."},{w:5,t:"Recommendation exchange",p:"Give the group your #1 rec: a restaurant, a book, anything."},{w:6,t:"One honest thing",p:"One challenge this month. Just something real."},{w:7,t:"Host someone",p:"Invite someone from outside. Show them what you built."},{w:8,t:"What continues",p:"Last week. What survives? Who stays? Exchange real info."}];
@@ -75,138 +59,31 @@ const PROMPTS=["What do you miss most from home?","What kind of friend are you t
 const VENUES={"Upper East Side":[{name:"The Penrose",addr:"1590 2nd Ave",beli:"the-penrose",type:"bar"},{name:"Central Park (E 72nd)",addr:"E 72nd & 5th Ave",beli:"",type:"park"}],"Upper West Side":[{name:"The Dead Poet",addr:"450 Amsterdam",beli:"the-dead-poet",type:"bar"}],"East Village":[{name:"Alphabet City Beer Co.",addr:"96 Ave C",beli:"alphabet-city-beer-co",type:"bar"},{name:"Tompkins Square",addr:"E 7th & Ave A",beli:"",type:"park"}],"West Village":[{name:"The Ear Inn",addr:"326 Spring St",beli:"the-ear-inn",type:"bar"}],"Chelsea":[{name:"The High Line",addr:"14th St entrance",beli:"",type:"park"}],"Williamsburg":[{name:"Domino Park",addr:"15 River St",beli:"",type:"park"}],"Park Slope":[{name:"Prospect Park",addr:"Grand Army Plaza",beli:"",type:"park"}],"Harlem":[{name:"Harlem Hops",addr:"2268 ACP Blvd",beli:"harlem-hops",type:"bar"}]};
 HOODS.forEach(h=>{if(!VENUES[h])VENUES[h]=[{name:"TBD",addr:h,beli:"",type:"bar"}];});
 
-// ═══ UTILS ═══
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const pl=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 const ago=d=>{if(!d)return"";const m=Math.floor((Date.now()-new Date(d).getTime())/60000);if(m<1)return"now";if(m<60)return m+"m";const h=Math.floor(m/60);if(h<24)return h+"h";return Math.floor(h/24)+"d";};
+function genSeason(nk){const s=new Date(2026,3,20);const dm={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};while(s.getDay()!==dm[nk])s.setDate(s.getDate()+1);return Array.from({length:8},(_,i)=>{const d=new Date(s);d.setDate(d.getDate()+i*7);return{week:i+1,date:d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}),long:d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}),past:d<new Date()};});}
+function runMatch(users,cohorts){console.log(`🔄 runMatch: ${users.length} users, ${cohorts.length} cohorts`);const matched=new Set(cohorts.flatMap(c=>c.member_ids||[]));const free=users.filter(u=>!matched.has(u.id)&&u.neighborhood&&Array.isArray(u.nights)&&u.nights.length>0);console.log(`  Free: ${free.length}`,free.map(u=>u.name));const groups={};free.forEach(u=>u.nights.forEach(n=>{const k=`${u.neighborhood}::${n}`;if(!groups[k])groups[k]=[];groups[k].push(u);}));const res=[],used=new Set();Object.entries(groups).sort((a,b)=>b[1].length-a[1].length).forEach(([k,us])=>{const av=us.filter(u=>!used.has(u.id));console.log(`  ${k}: ${av.length}`);if(av.length>=2){const[h,n]=k.split("::");const take=av.slice(0,12);take.forEach(u=>used.add(u.id));const vl=VENUES[h]||VENUES["Upper East Side"];const v=vl[Math.floor(Math.random()*vl.length)];res.push({id:`c-${uid()}`,name:CNAMES[(cohorts.length+res.length)%CNAMES.length],number:`#${100+cohorts.length+res.length}`,hood:h,night:n,venue:v,member_ids:take.map(u=>u.id),activity:"",season:1,host_id:take[0]?.id||"",created_at:new Date().toISOString()});}});console.log(`  New cohorts: ${res.length}`);return res;}
 
-function genSeason(nk){
-  const s=new Date(2026,3,20);const dm={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
-  while(s.getDay()!==dm[nk])s.setDate(s.getDate()+1);
-  return Array.from({length:8},(_,i)=>{const d=new Date(s);d.setDate(d.getDate()+i*7);return{week:i+1,date:d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}),long:d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}),past:d<new Date()};});
-}
-
-function runMatch(users,cohorts){
-  console.log(`🔄 runMatch: ${users.length} users, ${cohorts.length} existing cohorts`);
-  const matched=new Set(cohorts.flatMap(c=>c.member_ids||[]));
-  const free=users.filter(u=>!matched.has(u.id)&&u.neighborhood&&Array.isArray(u.nights)&&u.nights.length>0);
-  console.log(`  Free users: ${free.length}`,free.map(u=>`${u.name}(${u.neighborhood}/${u.nights})`));
-  const groups={};
-  free.forEach(u=>u.nights.forEach(n=>{const k=`${u.neighborhood}::${n}`;if(!groups[k])groups[k]=[];groups[k].push(u);}));
-  const res=[],used=new Set();
-  Object.entries(groups).sort((a,b)=>b[1].length-a[1].length).forEach(([k,us])=>{
-    const av=us.filter(u=>!used.has(u.id));
-    console.log(`  Bucket ${k}: ${av.length} available`);
-    if(av.length>=2){
-      const[h,n]=k.split("::");const take=av.slice(0,12);take.forEach(u=>used.add(u.id));
-      const vl=VENUES[h]||VENUES["Upper East Side"];const v=vl[Math.floor(Math.random()*vl.length)];
-      const cohort={id:`c-${uid()}`,name:CNAMES[(cohorts.length+res.length)%CNAMES.length],number:`#${100+cohorts.length+res.length}`,hood:h,night:n,venue:v,member_ids:take.map(u=>u.id),activity:"",season:1,host_id:take[0]?.id||"",created_at:new Date().toISOString()};
-      console.log(`  ✅ Creating cohort:`,cohort.name,cohort.member_ids);
-      res.push(cohort);
-    }
-  });
-  console.log(`  Result: ${res.length} new cohorts`);
-  return res;
-}
-
-
-// ═══════════════════════════════════════════════════════════════
-// DATABASE — THE FIX: Check {data, error} on every operation
-// Supabase JS client does NOT throw. It returns {data, error}.
-// Previous code used `await sb.from(t).upsert(d)` without
-// checking the return value, so errors were invisible.
-// ═══════════════════════════════════════════════════════════════
+// ═══ DB — all operations check {error} ═══
 const DB={
-  async get(t,q){
-    try{
-      if(sb){
-        let r=sb.from(t).select("*");
-        if(q)Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});
-        const{data,error}=await r.order("created_at",{ascending:false});
-        if(error){console.error(`❌ DB.get(${t}):`,error.message);return[];}
-        return data||[];
-      }
-      return JSON.parse(localStorage.getItem(`co_${t}`)||"[]").filter(x=>!q||Object.entries(q).every(([k,v])=>String(x[k])===String(v)));
-    }catch(e){console.error(`❌ DB.get(${t}) exception:`,e);return[];}
-  },
-
-  async put(t,d){
-    try{
-      if(sb){
-        const{data,error}=await sb.from(t).upsert(d,{onConflict:"id"});
-        if(error){console.error(`❌ DB.put(${t}):`,error.message,error.details,error.hint);return false;}
-        console.log(`✅ DB.put(${t}):`,d.id||d.name||"ok");
-        return true;
-      }
-      const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");
-      const i=a.findIndex(x=>x.id===d.id);if(i>=0)a[i]=d;else a.push(d);
-      localStorage.setItem(`co_${t}`,JSON.stringify(a));return true;
-    }catch(e){console.error(`❌ DB.put(${t}) exception:`,e);return false;}
-  },
-
-  async add(t,d){
-    try{
-      if(sb){
-        const{data,error}=await sb.from(t).insert(d);
-        if(error){console.error(`❌ DB.add(${t}):`,error.message,error.details,error.hint);return false;}
-        console.log(`✅ DB.add(${t}):`,d.id||"ok");
-        return true;
-      }
-      const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");a.unshift(d);
-      localStorage.setItem(`co_${t}`,JSON.stringify(a));return true;
-    }catch(e){console.error(`❌ DB.add(${t}) exception:`,e);return false;}
-  },
-
-  async del(t,q){
-    try{
-      if(sb){
-        let r=sb.from(t).delete();
-        Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});
-        const{error}=await r;
-        if(error){console.error(`❌ DB.del(${t}):`,error.message);return false;}
-        return true;
-      }
-      const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");
-      localStorage.setItem(`co_${t}`,JSON.stringify(a.filter(x=>!Object.entries(q).every(([k,v])=>String(x[k])===String(v)))));
-      return true;
-    }catch(e){console.error(`❌ DB.del(${t}) exception:`,e);return false;}
-  },
-
-  async toggleRsvp(userId,cohortId,wk){
-    const ex=await this.get("rsvps",{user_id:userId,cohort_id:cohortId});
-    const match=ex.find(r=>Number(r.week)===wk);
-    if(match){await this.del("rsvps",{id:match.id});return false;}
-    await this.add("rsvps",{id:`${userId}-${cohortId}-${wk}`,user_id:userId,cohort_id:cohortId,week:wk,status:"going",created_at:new Date().toISOString()});
-    return true;
-  },
-
-  mid(){return localStorage.getItem("co-me");},
-  setMid(id){localStorage.setItem("co-me",id);},
-  clearMid(){localStorage.removeItem("co-me");},
+  async get(t,q){try{if(sb){let r=sb.from(t).select("*");if(q)Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});const{data,error}=await r.order("created_at",{ascending:false});if(error){console.error(`❌ DB.get(${t}):`,error.message);return[];}return data||[];}return JSON.parse(localStorage.getItem(`co_${t}`)||"[]").filter(x=>!q||Object.entries(q).every(([k,v])=>String(x[k])===String(v)));}catch(e){console.error(`❌ DB.get(${t}):`,e);return[];}},
+  async put(t,d){try{if(sb){const{error}=await sb.from(t).upsert(d,{onConflict:"id"});if(error){console.error(`❌ DB.put(${t}):`,error.message,error.details);return false;}console.log(`✅ DB.put(${t}):`,d.id);return true;}const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");const i=a.findIndex(x=>x.id===d.id);if(i>=0)a[i]=d;else a.push(d);localStorage.setItem(`co_${t}`,JSON.stringify(a));return true;}catch(e){console.error(`❌ DB.put(${t}):`,e);return false;}},
+  async add(t,d){try{if(sb){const{error}=await sb.from(t).insert(d);if(error){console.error(`❌ DB.add(${t}):`,error.message,error.details);return false;}console.log(`✅ DB.add(${t}):`,d.id);return true;}const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");a.unshift(d);localStorage.setItem(`co_${t}`,JSON.stringify(a));return true;}catch(e){console.error(`❌ DB.add(${t}):`,e);return false;}},
+  async del(t,q){try{if(sb){let r=sb.from(t).delete();Object.entries(q).forEach(([k,v])=>{r=r.eq(k,v);});const{error}=await r;if(error){console.error(`❌ DB.del(${t}):`,error.message);return false;}return true;}const a=JSON.parse(localStorage.getItem(`co_${t}`)||"[]");localStorage.setItem(`co_${t}`,JSON.stringify(a.filter(x=>!Object.entries(q).every(([k,v])=>String(x[k])===String(v)))));return true;}catch(e){return false;}},
+  async toggleRsvp(uid,cid,wk){const ex=await this.get("rsvps",{user_id:uid,cohort_id:cid});const m=ex.find(r=>Number(r.week)===wk);if(m){await this.del("rsvps",{id:m.id});return false;}await this.add("rsvps",{id:`${uid}-${cid}-${wk}`,user_id:uid,cohort_id:cid,week:wk,status:"going",created_at:new Date().toISOString()});return true;},
+  // LOGIN: find account by name + neighborhood
+  async findUser(name,hood){const users=await this.get("users");return users.find(u=>u.name.toLowerCase()===name.toLowerCase()&&u.neighborhood===hood);},
+  mid(){return localStorage.getItem("co-me");},setMid(id){localStorage.setItem("co-me",id);},clearMid(){localStorage.removeItem("co-me");},
 };
-
 
 // ═══ COMPONENTS ═══
 const GradHeader=({gradient,children,style:extra})=><div style={{background:gradient||C.grad1,borderRadius:24,padding:"28px 24px",color:"#fff",position:"relative",overflow:"hidden",...extra}}><div style={{position:"absolute",top:0,right:0,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,0.1)",transform:"translate(30%,-30%)"}}/>{children}</div>;
-
-const Pill=({on,children,onClick,color=C.green,style:extra})=><button onClick={onClick} style={{fontSize:14,fontWeight:on?700:500,padding:"10px 20px",borderRadius:100,border:`2px solid ${on?color:C.border}`,background:on?color+"15":C.white,color:on?color:C.text,transition:"all .2s",...extra}}>{children}</button>;
-
-const BigPill=({on,children,onClick,emoji,desc})=><button onClick={onClick} style={{display:"flex",alignItems:"center",gap:14,width:"100%",padding:"16px 20px",borderRadius:18,border:`2px solid ${on?C.green:C.border}`,background:on?C.greenPale:C.white,textAlign:"left",transition:"all .2s",marginBottom:8}}>
-  {emoji&&<span style={{fontSize:24}}>{emoji}</span>}
-  <div style={{flex:1}}><div style={{fontSize:15,fontWeight:on?700:500,color:on?C.green:C.ink}}>{children}</div>{desc&&<div style={{fontSize:12,color:C.muted,marginTop:2}}>{desc}</div>}</div>
-  {on&&<span style={{fontSize:18,color:C.green}}>✓</span>}
-</button>;
-
+const Pill=({on,children,onClick,color=C.green,style:extra})=><button onClick={onClick} style={{fontSize:14,fontWeight:on?700:500,padding:"10px 20px",borderRadius:100,border:`2px solid ${on?color:C.border}`,background:on?color+"15":C.white,color:on?color:C.text,...extra}}>{children}</button>;
+const BigPill=({on,children,onClick,emoji,desc})=><button onClick={onClick} style={{display:"flex",alignItems:"center",gap:14,width:"100%",padding:"16px 20px",borderRadius:18,border:`2px solid ${on?C.green:C.border}`,background:on?C.greenPale:C.white,textAlign:"left",marginBottom:8}}>{emoji&&<span style={{fontSize:24}}>{emoji}</span>}<div style={{flex:1}}><div style={{fontSize:15,fontWeight:on?700:500,color:on?C.green:C.ink}}>{children}</div>{desc&&<div style={{fontSize:12,color:C.muted,marginTop:2}}>{desc}</div>}</div>{on&&<span style={{fontSize:18,color:C.green}}>✓</span>}</button>;
 const Avatar=({name,size=44,me:isMe})=>{const colors=["#FF6B6B","#4CAF72","#7C5CFC","#FF8E53","#2D7A4E","#D4A843","#E91E8C","#00BCD4"];const c=colors[((name||"").charCodeAt(0))%colors.length];return<div style={{width:size,height:size,borderRadius:size/2,background:isMe?C.grad1:c,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.4,fontWeight:800,color:"#fff",flexShrink:0,boxShadow:`0 2px 8px ${c}40`}}>{(name||"?")[0].toUpperCase()}</div>;};
-
-const Ico={
-  home:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>,
-  circle:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19c1-3 3-5 5.5-5s4.5 2 5.5 5"/></svg>,
-  ritual:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
-  ask:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12c0 2 .6 3.8 1.5 5.3L2 22l4.7-1.5c1.5.9 3.3 1.5 5.3 1.5z"/></svg>,
-  profile:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>,
-};
-
+const Confetti=()=><div style={{position:"fixed",top:0,left:0,right:0,bottom:0,pointerEvents:"none",zIndex:1000,overflow:"hidden"}}>{Array.from({length:30}).map((_,i)=><div key={i} style={{position:"absolute",top:-20,left:`${Math.random()*100}%`,width:10,height:10,borderRadius:Math.random()>.5?"50%":"2px",background:["#FF6B6B","#4CAF72","#7C5CFC","#FF8E53","#2D7A4E","#D4A843","#22C55E","#E91E8C"][i%8],animation:`confetti ${1.5+Math.random()*2}s ease-out ${Math.random()*.5}s forwards`}}/>)}</div>;
+const Ico={home:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>,circle:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19c1-3 3-5 5.5-5s4.5 2 5.5 5"/></svg>,ritual:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,ask:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12c0 2 .6 3.8 1.5 5.3L2 22l4.7-1.5c1.5.9 3.3 1.5 5.3 1.5z"/></svg>,profile:c=><svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>};
 
 // ═══ APP ═══
 function App(){
@@ -218,17 +95,22 @@ function App(){
   const[posts,setPosts]=useState([]);
   const[asks,setAsks]=useState([]);
   const[memos,setMemos]=useState([]);
+  const[checkins,setCheckins]=useState([]);
   const[loading,setLoading]=useState(true);
   const[saving,setSaving]=useState(false);
   const[step,setStep]=useState(0);
   const[toast,setToast]=useState(null);
-  const[dbErr,setDbErr]=useState(null);
   const[openMem,setOpenMem]=useState(null);
   const[openWk,setOpenWk]=useState(null);
+  const[showConfetti,setShowConfetti]=useState(false);
+  const[showCheckin,setShowCheckin]=useState(null);
   const[form,setForm]=useState({name:"",age:"",neighborhood:"",bio:"",interests:[],nights:[],life_stage:"",intention:"",cultural_prefs:[],cost_pref:"",instagram:"",beli:"",prompts:[{q:PROMPTS[0],a:""}],commitment:6});
+  const[loginForm,setLoginForm]=useState({name:"",neighborhood:""});
+  const[loginErr,setLoginErr]=useState("");
   const[newPost,setNewPost]=useState("");
   const[memInput,setMemInput]=useState("");
   const[askForm,setAskForm]=useState({content:"",ask_type:"need",category:"General"});
+  const[ciForm,setCiForm]=useState({felt_welcome:4,felt_safe:4,group_energy:4,would_return:true,note:""});
   const[showAsk,setShowAsk]=useState(false);
   const[tab,setTab]=useState("feed");
   const ref=useRef(null);
@@ -238,63 +120,30 @@ function App(){
   const tog=(key,val,max=99)=>setForm(f=>({...f,[key]:f[key].includes(val)?f[key].filter(x=>x!==val):f[key].length>=max?f[key]:[...f[key],val]}));
   const pg={maxWidth:540,margin:"0 auto",padding:"24px 20px 120px"};
 
-  // ─── LOAD ───
+  const loadCohortData=useCallback(async(mcId)=>{
+    const[r,p,a,m,ci]=await Promise.all([DB.get("rsvps",{cohort_id:mcId}),DB.get("posts",{cohort_id:mcId}),DB.get("asks",{cohort_id:mcId}),DB.get("memories",{cohort_id:mcId}),DB.get("checkins",{cohort_id:mcId})]);
+    setRsvps(r);setPosts(p);setAsks(a);setMemos(m);setCheckins(ci);
+  },[]);
+
   const load=useCallback(async()=>{
-    setLoading(true);setDbErr(null);
+    setLoading(true);
     try{
-      if(sb){
-        const{data,error}=await sb.from("users").select("id").limit(1);
-        if(error){
-          console.error("❌ Connection test:",error.message);
-          setDbErr(`Can't reach database: ${error.message}. Did you run the SQL setup?`);
-          setLoading(false);return;
-        }
-        console.log("✅ Supabase connection verified");
-      }
+      if(sb){const{error}=await sb.from("users").select("id").limit(1);if(error){console.error("❌",error.message);setLoading(false);return;}}
       const[u,c]=await Promise.all([DB.get("users"),DB.get("cohorts")]);
-      console.log(`📊 Loaded ${u.length} users, ${c.length} cohorts`);
       setUsers(u);setCohorts(c);
       const mid=DB.mid();
-      if(mid){
-        const f=u.find(x=>x.id===mid);
-        if(f){
-          setMe(f);setScr("home");
-          const mc=c.find(co=>(co.member_ids||[]).includes(mid));
-          if(mc){
-            const[r,p,a,m]=await Promise.all([
-              DB.get("rsvps",{cohort_id:mc.id}),
-              DB.get("posts",{cohort_id:mc.id}),
-              DB.get("asks",{cohort_id:mc.id}),
-              DB.get("memories",{cohort_id:mc.id})
-            ]);
-            setRsvps(r);setPosts(p);setAsks(a);setMemos(m);
-          }
-        }
-      }
-    }catch(e){console.error("❌ Load exception:",e);setDbErr(e.message);}
+      if(mid){const f=u.find(x=>x.id===mid);if(f){setMe(f);setScr("home");const mc=c.find(co=>(co.member_ids||[]).includes(mid));if(mc)await loadCohortData(mc.id);}}
+    }catch(e){console.error(e);}
     setLoading(false);
-  },[]);
+  },[loadCohortData]);
   useEffect(()=>{load();},[load]);
 
   const refresh=useCallback(async()=>{
-    const[u,c]=await Promise.all([DB.get("users"),DB.get("cohorts")]);
-    setUsers(u);setCohorts(c);
-    if(me){
-      const mc=c.find(co=>(co.member_ids||[]).includes(me.id));
-      if(mc){
-        const[r,p,a,m]=await Promise.all([
-          DB.get("rsvps",{cohort_id:mc.id}),
-          DB.get("posts",{cohort_id:mc.id}),
-          DB.get("asks",{cohort_id:mc.id}),
-          DB.get("memories",{cohort_id:mc.id})
-        ]);
-        setRsvps(r);setPosts(p);setAsks(a);setMemos(m);
-      }
-    }
+    const[u,c]=await Promise.all([DB.get("users"),DB.get("cohorts")]);setUsers(u);setCohorts(c);
+    if(me){const mc=c.find(co=>(co.member_ids||[]).includes(me.id));if(mc)await loadCohortData(mc.id);}
     flash("✨ Updated");
-  },[me]);
+  },[me,loadCohortData]);
 
-  // ─── DERIVED ───
   const mc=useMemo(()=>cohorts.find(c=>(c.member_ids||[]).includes(me?.id)),[cohorts,me]);
   const members=useMemo(()=>mc?users.filter(u=>(mc.member_ids||[]).includes(u.id)&&u.id!==me?.id):[],[mc,users,me]);
   const season=useMemo(()=>mc?genSeason(mc.night):null,[mc]);
@@ -304,79 +153,51 @@ function App(){
   const buddy=useMemo(()=>{if(!mc||!members.length||!cw)return null;return members[(cw.week+(me?.name||"").charCodeAt(0))%members.length];},[mc,members,cw,me]);
   const hoodWait=useMemo(()=>users.filter(u=>u.neighborhood===me?.neighborhood&&u.id!==me?.id&&!cohorts.some(c=>(c.member_ids||[]).includes(u.id))),[users,me,cohorts]);
   const canSign=form.name&&form.age>=21&&form.age<=34&&form.neighborhood&&form.interests.length>=3&&form.nights.length>=1;
+  // Check if user has checked in for the most recent past week
+  const lastPastWeek=useMemo(()=>{if(!season)return null;const pw=season.filter(w=>w.past);return pw.length?pw[pw.length-1]:null;},[season]);
+  const needsCheckin=useMemo(()=>{if(!lastPastWeek||!me||!mc)return false;return myR.has(lastPastWeek.week)&&!checkins.some(ci=>ci.user_id===me.id&&Number(ci.week)===lastPastWeek.week);},[lastPastWeek,me,mc,myR,checkins]);
 
-  // ─── SIGNUP WITH MATCHING ───
-  const signup=async()=>{
-    setSaving(true);
-    console.log("🚀 Starting signup...");
-
-    const userData={
-      id:uid(),name:form.name.trim(),age:parseInt(form.age),
-      neighborhood:form.neighborhood,bio:form.bio.trim(),
-      interests:form.interests,nights:form.nights,
-      life_stage:form.life_stage,intention:form.intention,
-      cultural_prefs:form.cultural_prefs,cost_pref:form.cost_pref,
-      instagram:form.instagram.trim(),beli:form.beli.trim(),
-      prompts:form.prompts.filter(p=>p.a.trim()),badges:[],vibe:"",
-      commitment:form.commitment,
-      joined_at:new Date().toISOString()
-    };
-
-    // Step 1: Save user
-    const putOk=await DB.put("users",userData);
-    console.log("  User saved:",putOk);
-    if(!putOk){flash("❌ Failed to save. Check console.");setSaving(false);return;}
-
-    DB.setMid(userData.id);
-    setMe(userData);
-
-    // Step 2: Fetch fresh data
-    const[au,ac]=await Promise.all([DB.get("users"),DB.get("cohorts")]);
-    console.log(`  Fresh data: ${au.length} users, ${ac.length} cohorts`);
-    setUsers(au);setCohorts(ac);
-
-    // Step 3: Run matching
-    const newCohorts=runMatch(au,ac);
-    console.log(`  Matching produced ${newCohorts.length} cohorts`);
-
-    // Step 4: Save each new cohort
-    let saved=0;
-    for(const c of newCohorts){
-      const ok=await DB.put("cohorts",c);
-      console.log(`  Cohort ${c.name} save:`,ok);
-      if(ok)saved++;
-    }
-
-    // Step 5: Refresh cohort list
-    const freshCohorts=await DB.get("cohorts");
-    setCohorts(freshCohorts);
-    console.log(`  Final cohorts in DB: ${freshCohorts.length}`);
-
-    if(saved>0)flash("🎉 You're matched!");
-    else if(newCohorts.length>0)flash("❌ Matching found a group but save failed. Check console.");
-    else flash("You're on the waitlist! Share to match faster.");
-
-    setSaving(false);
-    go("home");
+  // ─── LOGIN ───
+  const login=async()=>{
+    setLoginErr("");
+    const found=await DB.findUser(loginForm.name.trim(),loginForm.neighborhood);
+    if(found){DB.setMid(found.id);setMe(found);const[u,c]=await Promise.all([DB.get("users"),DB.get("cohorts")]);setUsers(u);setCohorts(c);const mc=c.find(co=>(co.member_ids||[]).includes(found.id));if(mc)await loadCohortData(mc.id);flash("Welcome back, "+found.name+" 👋");go("home");}
+    else setLoginErr("No account found with that name and neighborhood. Check spelling or sign up.");
   };
 
-  // ─── OTHER ACTIONS ───
+  // ─── SIGNUP ───
+  const signup=async()=>{
+    setSaving(true);
+    const userData={id:uid(),name:form.name.trim(),age:parseInt(form.age),neighborhood:form.neighborhood,bio:form.bio.trim(),interests:form.interests,nights:form.nights,life_stage:form.life_stage,intention:form.intention,cultural_prefs:form.cultural_prefs,cost_pref:form.cost_pref,instagram:form.instagram.trim(),beli:form.beli.trim(),prompts:form.prompts.filter(p=>p.a.trim()),badges:[],vibe:"",commitment:form.commitment,created_at:new Date().toISOString(),joined_at:new Date().toISOString()};
+    const ok=await DB.put("users",userData);
+    if(!ok){flash("❌ Failed to save");setSaving(false);return;}
+    DB.setMid(userData.id);setMe(userData);
+    const[au,ac]=await Promise.all([DB.get("users"),DB.get("cohorts")]);setUsers(au);setCohorts(ac);
+    const nc=runMatch(au,ac);let saved=0;
+    for(const c of nc){if(await DB.put("cohorts",c))saved++;}
+    const fc=await DB.get("cohorts");setCohorts(fc);
+    if(saved>0){setShowConfetti(true);setTimeout(()=>setShowConfetti(false),3000);flash("🎉 You're matched!");}
+    else flash("You're waitlisted! Share to match faster 📤");
+    setSaving(false);go("home");
+  };
+
+  // ─── ACTIONS ───
   const doRsvp=async wk=>{if(!me||!mc)return;await DB.toggleRsvp(me.id,mc.id,wk);setRsvps(await DB.get("rsvps",{cohort_id:mc.id}));};
-  const doPost=async()=>{if(!me||!mc||!newPost.trim())return;await DB.add("posts",{id:`p-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,content:newPost.trim(),post_type:"update",created_at:new Date().toISOString()});setNewPost("");setPosts(await DB.get("posts",{cohort_id:mc.id}));};
-  const doMem=async()=>{if(!me||!mc||!memInput.trim()||!cw)return;await DB.add("memories",{id:`m-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,content:memInput.trim(),week:cw.week,created_at:new Date().toISOString()});setMemInput("");setMemos(await DB.get("memories",{cohort_id:mc.id}));};
-  const doAsk=async()=>{if(!me||!mc||!askForm.content.trim())return;await DB.add("asks",{id:`a-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,...askForm,content:askForm.content.trim(),resolved:false,created_at:new Date().toISOString()});setAskForm({content:"",ask_type:"need",category:"General"});setShowAsk(false);setAsks(await DB.get("asks",{cohort_id:mc.id}));};
-  const share=()=>{const u=window.location.href;if(navigator.share)navigator.share({title:"Cohort",text:"Find your people ✦",url:u});else{navigator.clipboard?.writeText(u);flash("📋 Link copied!");}};
+  const doPost=async()=>{if(!me||!mc||!newPost.trim())return;await DB.add("posts",{id:`p-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,content:newPost.trim(),post_type:"update",created_at:new Date().toISOString()});setNewPost("");setPosts(await DB.get("posts",{cohort_id:mc.id}));flash("Posted 📝");};
+  const doMem=async()=>{if(!me||!mc||!memInput.trim()||!cw)return;await DB.add("memories",{id:`m-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,content:memInput.trim(),week:cw.week,created_at:new Date().toISOString()});setMemInput("");setMemos(await DB.get("memories",{cohort_id:mc.id}));flash("Memory saved ✨");};
+  const doAsk=async()=>{if(!me||!mc||!askForm.content.trim())return;await DB.add("asks",{id:`a-${uid()}`,cohort_id:mc.id,user_id:me.id,user_name:me.name,...askForm,content:askForm.content.trim(),resolved:false,created_at:new Date().toISOString()});setAskForm({content:"",ask_type:"need",category:"General"});setShowAsk(false);setAsks(await DB.get("asks",{cohort_id:mc.id}));flash("Posted 🤝");};
+  const doCheckin=async(wk)=>{if(!me||!mc)return;await DB.add("checkins",{id:`ci-${uid()}`,user_id:me.id,cohort_id:mc.id,week:wk,...ciForm,created_at:new Date().toISOString()});setShowCheckin(null);setCheckins(await DB.get("checkins",{cohort_id:mc.id}));flash("Thanks for checking in 💚");};
+  const share=()=>{const url=window.location.href;const txt=mc?`Join my cohort in ${mc.hood}! Same people, same place, every week.`:"Find your people in NYC ✦";if(navigator.share)navigator.share({title:"Cohort",text:txt,url});else{navigator.clipboard?.writeText(url+"\n\n"+txt);flash("📋 Copied!");}};
   const logout=()=>{DB.clearMid();setMe(null);go("landing");};
 
-  // ─── NAV ───
   const Nav=()=>me&&mc?<div className="bnav">{[["home","Home","home"],["circle","Circle","circle"],["ritual","Rituals","ritual"],["ask","Asks","ask"],["profile","Me","profile"]].map(([k,l,i])=><button key={k} className={scr===k?"on":""} onClick={()=>go(k)}>{Ico[i](scr===k?C.green:"#B8AD9E")}<span>{l}</span></button>)}</div>:null;
 
-  // ═══ RENDER ═══
   if(loading)return<div style={{background:C.bg,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><div className="spinner"/></div>;
 
   return(
   <div style={{background:C.bg,minHeight:"100vh"}}>
   <div ref={ref}/>
+  {showConfetti&&<Confetti/>}
   {toast&&<div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:999,fontSize:14,fontWeight:700,background:C.white,border:`2px solid ${C.border}`,color:C.ink,padding:"14px 28px",borderRadius:100,boxShadow:"0 8px 32px #0001",animation:"popIn .4s cubic-bezier(.175,.885,.32,1.275)"}}>{toast}</div>}
 
   {/* ═══ LANDING ═══ */}
@@ -385,23 +206,23 @@ function App(){
       <div style={{fontSize:48,marginBottom:8}} className="pop">✦</div>
       <h1 style={{fontSize:40,fontWeight:800,lineHeight:1.1,color:C.ink,marginBottom:16,letterSpacing:"-1px"}} className="pop">Find your<br/>people.</h1>
       <p style={{fontSize:17,color:C.text,lineHeight:1.65,marginBottom:40,maxWidth:360,animation:"popIn .5s ease .15s both"}}>
-        We put you in a small group in your neighborhood. Same faces, same place, every week for 8 weeks. Strangers become friends.
+        We put you in a small group in your neighborhood. Same faces, same place, every week for 8 weeks.
       </p>
-
-      {dbErr&&<div className="err-banner">{dbErr}</div>}
 
       <GradHeader gradient={C.grad1} style={{marginBottom:24,animation:"popIn .5s ease .25s both"}}>
         <div style={{fontSize:13,fontWeight:600,opacity:.8,marginBottom:8}}>How it works</div>
         <div style={{display:"flex",gap:16}}>
-          {[{t:"Sign up",e:"✍️"},{t:"Get matched",e:"🤝"},{t:"Meet weekly",e:"📍"},{t:"Keep your friends",e:"💚"}].map((x,i)=>
+          {[{t:"Sign up",e:"✍️"},{t:"Get matched",e:"🤝"},{t:"Meet weekly",e:"📍"},{t:"Keep friends",e:"💚"}].map((x,i)=>
             <div key={i} style={{flex:1,textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{x.e}</div><div style={{fontSize:11,fontWeight:700}}>{x.t}</div></div>
           )}
         </div>
       </GradHeader>
 
-      <button style={{fontSize:16,fontWeight:800,padding:"18px 32px",borderRadius:100,background:C.green,color:"#fff",width:"100%",boxShadow:"0 4px 16px "+C.green+"40",animation:"popIn .5s ease .35s both"}} onClick={()=>{setStep(0);go("signup");}}>
-        Get started →
-      </button>
+      <button style={{fontSize:16,fontWeight:800,padding:"18px 32px",borderRadius:100,background:C.green,color:"#fff",width:"100%",boxShadow:"0 4px 16px "+C.green+"40",animation:"popIn .5s ease .35s both"}} onClick={()=>{setStep(0);go("signup");}}>Get started →</button>
+
+      <div style={{textAlign:"center",marginTop:16,animation:"popIn .5s ease .4s both"}}>
+        <button style={{fontSize:14,color:C.green,fontWeight:700}} onClick={()=>go("login")}>Already have an account? Log in</button>
+      </div>
 
       <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:20,fontSize:13,color:C.muted,fontWeight:600,animation:"popIn .5s ease .45s both"}}>
         <span>{pl(users.length,"person")} joined</span><span>·</span><span>{pl(cohorts.length,"circle")} formed</span>
@@ -409,81 +230,70 @@ function App(){
     </div>
   </div>}
 
+  {/* ═══ LOGIN ═══ */}
+  {scr==="login"&&<div style={pg}>
+    <div style={{maxWidth:400,margin:"0 auto",paddingTop:40}}>
+      <div style={{fontSize:48,marginBottom:12}} className="pop">👋</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}} className="pop">Welcome back</h2>
+      <p style={{fontSize:15,color:C.muted,marginBottom:28}}>Enter your name and neighborhood to find your account.</p>
+      <div style={{marginBottom:16}}>
+        <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Name</div>
+        <input value={loginForm.name} onChange={e=>setLoginForm(f=>({...f,name:e.target.value}))} placeholder="The name you signed up with"/>
+      </div>
+      <div style={{marginBottom:24}}>
+        <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Neighborhood</div>
+        <select value={loginForm.neighborhood} onChange={e=>setLoginForm(f=>({...f,neighborhood:e.target.value}))}><option value="">Pick yours</option>{HOODS.map(n=><option key={n} value={n}>{n}</option>)}</select>
+      </div>
+      {loginErr&&<div style={{background:C.coralPale,borderRadius:14,padding:"12px 16px",marginBottom:16,fontSize:14,color:C.coral,fontWeight:600}}>{loginErr}</div>}
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(!loginForm.name.trim()||!loginForm.neighborhood?{opacity:.3,pointerEvents:"none"}:{})}} onClick={login}>Find my account</button>
+      <div style={{textAlign:"center",marginTop:16}}><button style={{fontSize:14,color:C.muted,fontWeight:600}} onClick={()=>go("landing")}>← Back</button></div>
+    </div>
+  </div>}
+
   {/* ═══ SIGNUP ═══ */}
   {scr==="signup"&&<div style={pg}>
     <div style={{height:6,background:C.border,borderRadius:3,marginBottom:32,overflow:"hidden"}}><div style={{height:"100%",background:C.grad1,borderRadius:3,width:`${((step+1)/6)*100}%`,transition:"width .3s"}}/></div>
 
-    {step===0&&<div className="pop">
-      <div style={{fontSize:32,marginBottom:8}}>👋</div>
-      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Let's start</h2>
-      <p style={{fontSize:15,color:C.muted,marginBottom:28}}>Takes 2 minutes.</p>
+    {step===0&&<div className="pop"><div style={{fontSize:32,marginBottom:8}}>👋</div><h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Let's start</h2><p style={{fontSize:15,color:C.muted,marginBottom:28}}>Takes 2 minutes.</p>
       <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>First name</div><input value={form.name} onChange={e=>sF("name",e.target.value)} placeholder="What your crew calls you"/></div>
       <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Age</div><input type="number" min={21} max={34} value={form.age} onChange={e=>sF("age",e.target.value)} placeholder="21–34"/></div>
       <div style={{marginBottom:28}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Neighborhood</div><select value={form.neighborhood} onChange={e=>sF("neighborhood",e.target.value)}><option value="">Pick yours</option>{HOODS.map(n=><option key={n} value={n}>{n}</option>)}</select></div>
       <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(!form.name||!form.age||form.age<21||form.age>34||!form.neighborhood?{opacity:.3,pointerEvents:"none"}:{})}} onClick={()=>setStep(1)}>Continue →</button>
     </div>}
 
-    {step===1&&<div className="pop">
-      <div style={{fontSize:32,marginBottom:8}}>🧭</div>
-      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Where are you at?</h2>
-      <p style={{fontSize:15,color:C.muted,marginBottom:24}}>We match by life chapter, not just age.</p>
+    {step===1&&<div className="pop"><div style={{fontSize:32,marginBottom:8}}>🧭</div><h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Where are you at?</h2><p style={{fontSize:15,color:C.muted,marginBottom:24}}>We match by life chapter.</p>
       {STAGES.map(ls=><BigPill key={ls.id} on={form.life_stage===ls.id} onClick={()=>sF("life_stage",form.life_stage===ls.id?"":ls.id)} emoji={ls.e}>{ls.l}</BigPill>)}
       <div style={{fontSize:12,fontWeight:700,color:C.muted,marginTop:24,marginBottom:12,textTransform:"uppercase",letterSpacing:"1px"}}>What kind of crew?</div>
       {INTENTIONS.map(it=><BigPill key={it.id} on={form.intention===it.id} onClick={()=>sF("intention",form.intention===it.id?"":it.id)} emoji={it.e} desc={it.d}>{it.l}</BigPill>)}
       <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:20}} onClick={()=>setStep(2)}>Continue →</button>
     </div>}
 
-    {step===2&&<div className="pop">
-      <div style={{fontSize:32,marginBottom:8}}>⚡</div>
-      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Interests & nights</h2>
-      <p style={{fontSize:15,color:C.muted,marginBottom:20}}>Pick 3–5 things and at least one night.</p>
-      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28}}>
-        {INTERESTS.map(x=><Pill key={x} on={form.interests.includes(x)} onClick={()=>tog("interests",x,5)}>{x}</Pill>)}
-      </div>
+    {step===2&&<div className="pop"><div style={{fontSize:32,marginBottom:8}}>⚡</div><h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Interests & nights</h2><p style={{fontSize:15,color:C.muted,marginBottom:20}}>Pick 3–5 and at least one night.</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28}}>{INTERESTS.map(x=><Pill key={x} on={form.interests.includes(x)} onClick={()=>tog("interests",x,5)}>{x}</Pill>)}</div>
       <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:12,textTransform:"uppercase",letterSpacing:"1px"}}>Available nights</div>
-      <div style={{display:"flex",gap:8,marginBottom:28}}>
-        {NIGHTS.map(x=><Pill key={x} on={form.nights.includes(x)} onClick={()=>tog("nights",x)} style={{flex:1,textAlign:"center",padding:"12px 8px"}}>{x}</Pill>)}
-      </div>
+      <div style={{display:"flex",gap:8,marginBottom:28}}>{NIGHTS.map(x=><Pill key={x} on={form.nights.includes(x)} onClick={()=>tog("nights",x)} style={{flex:1,textAlign:"center",padding:"12px 8px"}}>{x}</Pill>)}</div>
       <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(form.interests.length<3||form.nights.length<1?{opacity:.3,pointerEvents:"none"}:{})}} onClick={()=>setStep(3)}>Continue →</button>
     </div>}
 
-    {step===3&&<div className="pop">
-      <div style={{fontSize:32,marginBottom:8}}>🌿</div>
-      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Your vibe</h2>
-      <p style={{fontSize:15,color:C.muted,marginBottom:20}}>All optional. Helps us find the right room.</p>
-      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:24}}>
-        {CULTURAL.map(cp=><Pill key={cp.id} on={form.cultural_prefs.includes(cp.id)} onClick={()=>tog("cultural_prefs",cp.id)}>{cp.l}</Pill>)}
-      </div>
+    {step===3&&<div className="pop"><div style={{fontSize:32,marginBottom:8}}>🌿</div><h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Your vibe</h2><p style={{fontSize:15,color:C.muted,marginBottom:20}}>All optional.</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:24}}>{CULTURAL.map(cp=><Pill key={cp.id} on={form.cultural_prefs.includes(cp.id)} onClick={()=>tog("cultural_prefs",cp.id)}>{cp.l}</Pill>)}</div>
       <div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:12,textTransform:"uppercase",letterSpacing:"1px"}}>Budget</div>
       {COSTS.map(cp=><BigPill key={cp.id} on={form.cost_pref===cp.id} onClick={()=>sF("cost_pref",form.cost_pref===cp.id?"":cp.id)} desc={cp.d}>{cp.l}</BigPill>)}
       <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:20}} onClick={()=>setStep(4)}>Continue →</button>
     </div>}
 
-    {step===4&&<div className="pop">
-      <div style={{fontSize:32,marginBottom:8}}>💬</div>
-      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>About you</h2>
+    {step===4&&<div className="pop"><div style={{fontSize:32,marginBottom:8}}>💬</div><h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>About you</h2>
       <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Bio</div><textarea style={{minHeight:80}} value={form.bio} onChange={e=>sF("bio",e.target.value)} placeholder="Where you're from, what you do, why you're here"/></div>
       <div style={{marginBottom:16}}><select style={{fontSize:14,marginBottom:8}} value={form.prompts[0]?.q} onChange={e=>{const p=[...form.prompts];p[0]={...p[0],q:e.target.value};sF("prompts",p);}}>{PROMPTS.map(q=><option key={q} value={q}>{q}</option>)}</select><textarea style={{minHeight:60}} value={form.prompts[0]?.a} onChange={e=>{const p=[...form.prompts];p[0]={...p[0],a:e.target.value};sF("prompts",p);}} placeholder="Your answer..."/></div>
       <div style={{display:"flex",gap:12}}><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Instagram</div><input value={form.instagram} onChange={e=>sF("instagram",e.target.value)} placeholder="@handle"/></div><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Beli</div><input value={form.beli} onChange={e=>sF("beli",e.target.value)} placeholder="username"/></div></div>
       <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:24}} onClick={()=>setStep(5)}>Continue →</button>
     </div>}
 
-    {step===5&&<div className="pop">
-      <div style={{fontSize:32,marginBottom:8}}>🤝</div>
-      <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Your commitment</h2>
-      <p style={{fontSize:15,color:C.muted,marginBottom:20}}>Reliability {">"} compatibility. How many of 8 weeks?</p>
-      <div style={{display:"flex",gap:8,marginBottom:24}}>
-        {[5,6,7,8].map(n=><button key={n} style={{flex:1,padding:"16px 0",borderRadius:16,border:`2px solid ${form.commitment===n?C.green:C.border}`,background:form.commitment===n?C.greenPale:C.white,fontSize:20,fontWeight:800,color:form.commitment===n?C.green:C.muted}} onClick={()=>sF("commitment",n)}>{n}</button>)}
-      </div>
-      <GradHeader gradient={C.grad1} style={{marginBottom:24}}>
-        <div style={{fontWeight:800,fontSize:16,marginBottom:4}}>{form.name}, {form.age}</div>
-        <div style={{fontSize:13,opacity:.85}}>{form.neighborhood} · {form.nights.map(n=>NF[n]).join(", ")}</div>
-        <div style={{fontSize:13,opacity:.85,marginTop:2}}>{form.interests.join(", ")}</div>
-        {form.life_stage&&<div style={{fontSize:13,marginTop:4,opacity:.9}}>{STAGES.find(x=>x.id===form.life_stage)?.e} {STAGES.find(x=>x.id===form.life_stage)?.l}</div>}
-      </GradHeader>
-      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",boxShadow:"0 4px 16px "+C.green+"40",...(!canSign||saving?{opacity:.3,pointerEvents:"none"}:{})}} onClick={signup}>{saving?"Finding your people...":"Join the waitlist 🎉"}</button>
+    {step===5&&<div className="pop"><div style={{fontSize:32,marginBottom:8}}>🤝</div><h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Commitment</h2><p style={{fontSize:15,color:C.muted,marginBottom:20}}>How many of 8 weeks?</p>
+      <div style={{display:"flex",gap:8,marginBottom:24}}>{[5,6,7,8].map(n=><button key={n} style={{flex:1,padding:"16px 0",borderRadius:16,border:`2px solid ${form.commitment===n?C.green:C.border}`,background:form.commitment===n?C.greenPale:C.white,fontSize:20,fontWeight:800,color:form.commitment===n?C.green:C.muted}} onClick={()=>sF("commitment",n)}>{n}</button>)}</div>
+      <GradHeader gradient={C.grad1} style={{marginBottom:24}}><div style={{fontWeight:800,fontSize:16,marginBottom:4}}>{form.name}, {form.age}</div><div style={{fontSize:13,opacity:.85}}>{form.neighborhood} · {form.nights.map(n=>NF[n]).join(", ")}</div><div style={{fontSize:13,opacity:.85,marginTop:2}}>{form.interests.join(", ")}</div>{form.life_stage&&<div style={{fontSize:13,marginTop:4,opacity:.9}}>{STAGES.find(x=>x.id===form.life_stage)?.e} {STAGES.find(x=>x.id===form.life_stage)?.l}</div>}</GradHeader>
+      <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",boxShadow:"0 4px 16px "+C.green+"40",...(!canSign||saving?{opacity:.3,pointerEvents:"none"}:{})}} onClick={signup}>{saving?"Finding your people...":"Join 🎉"}</button>
     </div>}
-
     <div style={{textAlign:"center",marginTop:16}}><button style={{fontSize:14,color:C.muted,fontWeight:600}} onClick={()=>step>0?setStep(step-1):go("landing")}>← Back</button></div>
   </div>}
 
@@ -495,7 +305,34 @@ function App(){
     </div>
 
     {mc?<>
-      {cw&&!cw.past&&<GradHeader gradient={C.grad1} style={{marginBottom:16}} className="pop">
+      {/* POST-MEETUP CHECK-IN PROMPT */}
+      {needsCheckin&&!showCheckin&&<div style={{background:C.grad4,borderRadius:20,padding:"24px",color:"#fff",marginBottom:16,animation:"popIn .5s ease"}} className="pop">
+        <div style={{fontSize:24,marginBottom:8}}>🌙</div>
+        <div style={{fontSize:18,fontWeight:800,marginBottom:4}}>How was {NF[mc.night]} night?</div>
+        <div style={{fontSize:14,opacity:.85,marginBottom:16}}>Week {lastPastWeek.week} check-in</div>
+        <button style={{fontSize:14,fontWeight:800,padding:"12px 28px",borderRadius:100,background:"#fff",color:C.purple}} onClick={()=>setShowCheckin(lastPastWeek.week)}>Rate it →</button>
+      </div>}
+
+      {/* Check-in form */}
+      {showCheckin&&<div style={{background:C.white,borderRadius:20,padding:"24px",border:`2px solid ${C.border}`,marginBottom:16,animation:"popIn .3s ease"}}>
+        <div style={{fontSize:18,fontWeight:800,color:C.ink,marginBottom:16}}>Week {showCheckin} check-in 🌙</div>
+        {[{k:"felt_welcome",l:"Felt welcome",e:["😬","😐","🙂","😊","🥰"]},{k:"felt_safe",l:"Felt safe",e:["😟","😐","🙂","😊","🛡️"]},{k:"group_energy",l:"Group energy",e:["😴","🙂","😄","🔥","⚡"]}].map(({k,l,e})=>
+          <div key={k} style={{marginBottom:16}}>
+            <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:8}}>{l}</div>
+            <div style={{display:"flex",gap:8}}>{[1,2,3,4,5].map(n=>
+              <button key={n} style={{flex:1,padding:"12px 0",borderRadius:14,border:`2px solid ${ciForm[k]>=n?C.green:C.border}`,background:ciForm[k]>=n?C.greenPale:C.white,fontSize:20,textAlign:"center"}} onClick={()=>setCiForm(f=>({...f,[k]:n}))}>{e[n-1]}</button>
+            )}</div>
+          </div>
+        )}
+        <div style={{marginBottom:16}}><textarea style={{minHeight:56}} value={ciForm.note} onChange={e=>setCiForm(f=>({...f,note:e.target.value}))} placeholder="Any thoughts? Best moment? (optional)"/></div>
+        <div style={{display:"flex",gap:8}}>
+          <button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,color:C.muted}} onClick={()=>setShowCheckin(null)}>Skip</button>
+          <button style={{flex:1,fontSize:14,fontWeight:800,padding:"14px",borderRadius:100,background:C.green,color:"#fff"}} onClick={()=>doCheckin(showCheckin)}>Submit 💚</button>
+        </div>
+      </div>}
+
+      {/* This week */}
+      {cw&&!cw.past&&<GradHeader gradient={C.grad1} style={{marginBottom:16}}>
         <div style={{fontSize:12,fontWeight:700,opacity:.75,marginBottom:8}}>THIS {NF[mc.night].toUpperCase()}</div>
         <div style={{fontSize:24,fontWeight:800,marginBottom:4}}>{cw.long}</div>
         <div style={{fontSize:14,opacity:.85,marginBottom:16}}>{mc.venue?.name} · {mc.hood} · 7:30 PM</div>
@@ -506,70 +343,35 @@ function App(){
       </GradHeader>}
 
       {/* Season ribbon */}
-      <div style={{display:"flex",gap:6,marginBottom:16}}>
-        {season?.map(w=>{const g=myR.has(w.week);const cur=cw?.week===w.week;return<button key={w.week} style={{flex:1,padding:"12px 0",borderRadius:12,background:cur?C.greenPale:g?C.greenPale+"80":C.white,border:`2px solid ${cur?C.green:g?C.greenPale:C.border}`,textAlign:"center",opacity:w.past&&!g?.4:1}} onClick={()=>setOpenWk(openWk===w.week?null:w.week)}>
-          <div style={{fontSize:13,fontWeight:cur?800:600,color:cur?C.green:g?C.greenLight:C.muted}}>{w.week}</div>
-          {g&&<div style={{width:5,height:5,borderRadius:3,background:C.green,margin:"3px auto 0"}}/>}
-        </button>;})}
-      </div>
+      <div style={{display:"flex",gap:6,marginBottom:16}}>{season?.map(w=>{const g=myR.has(w.week);const cur=cw?.week===w.week;return<button key={w.week} style={{flex:1,padding:"12px 0",borderRadius:12,background:cur?C.greenPale:g?C.greenPale+"80":C.white,border:`2px solid ${cur?C.green:g?C.greenPale:C.border}`,textAlign:"center",opacity:w.past&&!g?.4:1}} onClick={()=>setOpenWk(openWk===w.week?null:w.week)}><div style={{fontSize:13,fontWeight:cur?800:600,color:cur?C.green:g?C.greenLight:C.muted}}>{w.week}</div>{g&&<div style={{width:5,height:5,borderRadius:3,background:C.green,margin:"3px auto 0"}}/>}</button>;})}</div>
+      {openWk&&<div style={{background:C.greenPale,borderRadius:18,padding:"20px",marginBottom:16,animation:"popIn .3s ease"}}><div style={{fontSize:12,fontWeight:800,color:C.green,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}}>Week {openWk} · {RITUALS[openWk-1]?.t}</div><div style={{fontSize:14,color:C.text,lineHeight:1.6}}>{RITUALS[openWk-1]?.p}</div></div>}
 
-      {openWk&&<div style={{background:C.greenPale,borderRadius:18,padding:"20px",marginBottom:16,animation:"popIn .3s ease"}}>
-        <div style={{fontSize:12,fontWeight:800,color:C.green,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}}>Week {openWk} · {RITUALS[openWk-1]?.t}</div>
-        <div style={{fontSize:14,color:C.text,lineHeight:1.6}}>{RITUALS[openWk-1]?.p}</div>
-      </div>}
+      {/* Ritual + buddy */}
+      {ritual&&<div style={{background:C.brownPale,borderRadius:18,padding:"20px",marginBottom:16}}><div style={{fontSize:12,fontWeight:800,color:C.brown,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}}>🕯️ Week {ritual.w} ritual</div><div style={{fontSize:15,color:C.ink,lineHeight:1.6,fontStyle:"italic"}}>{ritual.p}</div></div>}
+      {buddy&&<div style={{background:C.purplePale,borderRadius:18,padding:"16px 20px",marginBottom:16,display:"flex",alignItems:"center",gap:14}}><Avatar name={buddy.name} size={40}/><div><div style={{fontSize:12,fontWeight:800,color:C.purple,textTransform:"uppercase",letterSpacing:"1px"}}>☕ Coffee buddy</div><div style={{fontSize:15,fontWeight:600,color:C.ink}}>{buddy.name}</div></div></div>}
 
-      {ritual&&<div style={{background:C.brownPale,borderRadius:18,padding:"20px",marginBottom:16}}>
-        <div style={{fontSize:12,fontWeight:800,color:C.brown,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}}>🕯️ Week {ritual.w} ritual</div>
-        <div style={{fontSize:15,color:C.ink,lineHeight:1.6,fontStyle:"italic"}}>{ritual.p}</div>
-      </div>}
-
-      {buddy&&<div style={{background:C.purplePale,borderRadius:18,padding:"16px 20px",marginBottom:16,display:"flex",alignItems:"center",gap:14}}>
-        <Avatar name={buddy.name} size={40}/>
-        <div><div style={{fontSize:12,fontWeight:800,color:C.purple,textTransform:"uppercase",letterSpacing:"1px"}}>☕ Coffee buddy</div><div style={{fontSize:15,fontWeight:600,color:C.ink}}>{buddy.name}</div></div>
-      </div>}
-
+      {/* Circle */}
       <div style={{marginBottom:16}}>
         <div style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px",marginBottom:12}}>Your circle · {mc.name} {mc.number}</div>
         <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:4}}>
           <div style={{textAlign:"center",flexShrink:0}}><Avatar name={me.name} size={48} me/><div style={{fontSize:11,fontWeight:700,color:C.green,marginTop:4}}>You</div></div>
           {members.map(m=><div key={m.id} style={{textAlign:"center",flexShrink:0,cursor:"pointer"}} onClick={()=>setOpenMem(openMem===m.id?null:m.id)}><Avatar name={m.name} size={48}/><div style={{fontSize:11,fontWeight:600,color:C.text,marginTop:4}}>{m.name}</div></div>)}
         </div>
-        {openMem&&members.find(m=>m.id===openMem)&&(()=>{const m=members.find(x=>x.id===openMem);return<div style={{background:C.white,borderRadius:18,padding:"20px",marginTop:12,border:`2px solid ${C.border}`,animation:"popIn .3s ease"}}>
-          <div style={{fontSize:16,fontWeight:800,color:C.ink}}>{m.name}{m.age&&`, ${m.age}`}</div>
-          {m.bio&&<div style={{fontSize:14,color:C.text,lineHeight:1.6,marginTop:6}}>{m.bio}</div>}
-          {m.life_stage&&<div style={{fontSize:13,color:C.green,marginTop:6}}>{STAGES.find(x=>x.id===m.life_stage)?.e} {STAGES.find(x=>x.id===m.life_stage)?.l}</div>}
-          {(m.prompts||[]).filter(p=>p.a).map((p,j)=><div key={j} style={{marginTop:10}}><div style={{fontSize:12,color:C.muted,fontWeight:600}}>{p.q}</div><div style={{fontSize:14,color:C.ink,marginTop:2}}>{p.a}</div></div>)}
-          <div style={{fontSize:12,color:C.muted,marginTop:8}}>{(m.interests||[]).join(" · ")}</div>
-        </div>;})()}
+        {openMem&&members.find(m=>m.id===openMem)&&(()=>{const m=members.find(x=>x.id===openMem);return<div style={{background:C.white,borderRadius:18,padding:"20px",marginTop:12,border:`2px solid ${C.border}`,animation:"popIn .3s ease"}}><div style={{fontSize:16,fontWeight:800,color:C.ink}}>{m.name}{m.age&&`, ${m.age}`}</div>{m.bio&&<div style={{fontSize:14,color:C.text,lineHeight:1.6,marginTop:6}}>{m.bio}</div>}{m.life_stage&&<div style={{fontSize:13,color:C.green,marginTop:6}}>{STAGES.find(x=>x.id===m.life_stage)?.e} {STAGES.find(x=>x.id===m.life_stage)?.l}</div>}{(m.prompts||[]).filter(p=>p.a).map((p,j)=><div key={j} style={{marginTop:10}}><div style={{fontSize:12,color:C.muted,fontWeight:600}}>{p.q}</div><div style={{fontSize:14,color:C.ink,marginTop:2}}>{p.a}</div></div>)}<div style={{fontSize:12,color:C.muted,marginTop:8}}>{(m.interests||[]).join(" · ")}</div>{(m.instagram||m.beli)&&<div style={{display:"flex",gap:12,marginTop:8}}>{m.instagram&&<a href={`https://instagram.com/${m.instagram.replace("@","")}`} target="_blank">@{m.instagram.replace("@","")}</a>}{m.beli&&<a href={`https://bfrnd.link/${m.beli}`} target="_blank">Beli</a>}</div>}</div>;})()}
       </div>
 
-      {posts.length>0&&<div style={{marginBottom:16}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px"}}>Recent</span><button style={{fontSize:13,fontWeight:700,color:C.green}} onClick={()=>{setTab("feed");go("circle");}}>See all</button></div>
-        {posts.slice(0,2).map(p=><div key={p.id} style={{background:C.white,borderRadius:16,padding:"16px",border:`2px solid ${C.border}`,marginBottom:8}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.muted}}>{p.user_name} · {ago(p.created_at)}</div>
-          <div style={{fontSize:14,color:C.ink,lineHeight:1.6,marginTop:4}}>{p.content}</div>
-        </div>)}
+      {/* Recent posts */}
+      {posts.length>0&&<div style={{marginBottom:16}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px"}}>Recent</span><button style={{fontSize:13,fontWeight:700,color:C.green}} onClick={()=>{setTab("feed");go("circle");}}>See all</button></div>
+        {posts.slice(0,2).map(p=><div key={p.id} style={{background:C.white,borderRadius:16,padding:"16px",border:`2px solid ${C.border}`,marginBottom:8}}><div style={{fontSize:12,fontWeight:700,color:C.muted}}>{p.user_name} · {ago(p.created_at)}</div><div style={{fontSize:14,color:C.ink,lineHeight:1.6,marginTop:4}}>{p.content}</div></div>)}
       </div>}
 
-      <div style={{display:"flex",gap:8,marginBottom:16}}>
-        {[{l:"Season",v:mc.season||1,bg:C.greenPale,c:C.green},{l:"Rate",v:Math.round(myR.size/Math.max(1,season?.filter(w=>w.past).length||1)*100)+"%",bg:C.brownPale,c:C.brown},{l:"Memories",v:memos.length,bg:C.purplePale,c:C.purple}].map((x,i)=><div key={i} style={{flex:1,background:x.bg,borderRadius:16,padding:"16px 12px",textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:x.c}}>{x.v}</div><div style={{fontSize:11,fontWeight:700,color:x.c,opacity:.7,marginTop:2}}>{x.l}</div></div>)}
-      </div>
+      {/* Stats */}
+      <div style={{display:"flex",gap:8,marginBottom:16}}>{[{l:"Season",v:mc.season||1,bg:C.greenPale,c:C.green},{l:"Rate",v:Math.round(myR.size/Math.max(1,season?.filter(w=>w.past).length||1)*100)+"%",bg:C.brownPale,c:C.brown},{l:"Memories",v:memos.length,bg:C.purplePale,c:C.purple}].map((x,i)=><div key={i} style={{flex:1,background:x.bg,borderRadius:16,padding:"16px 12px",textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:x.c}}>{x.v}</div><div style={{fontSize:11,fontWeight:700,color:x.c,opacity:.7,marginTop:2}}>{x.l}</div></div>)}</div>
       <div style={{display:"flex",gap:8}}><button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,background:C.white,color:C.ink}} onClick={share}>Invite 📤</button><button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,background:C.white,color:C.ink}} onClick={()=>go("explore")}>Explore 🗺️</button></div>
     </>:<>
-      <div className="pop">
-        <div style={{fontSize:48,marginBottom:12}}>👋</div>
-        <h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Hey, {me.name}!</h2>
-        <p style={{fontSize:15,color:C.muted,lineHeight:1.6,marginBottom:24}}>You're on the waitlist for <strong style={{color:C.ink}}>{me.neighborhood}</strong>. Circles form at 2+ people.</p>
-        <GradHeader gradient={C.grad2} style={{marginBottom:24}}>
-          <div style={{display:"flex",justifyContent:"space-around"}}>
-            <div style={{textAlign:"center"}}><div style={{fontSize:32,fontWeight:800}}>{hoodWait.length+1}</div><div style={{fontSize:12,opacity:.8}}>In your area</div></div>
-            <div style={{textAlign:"center"}}><div style={{fontSize:32,fontWeight:800}}>2</div><div style={{fontSize:12,opacity:.8}}>Needed</div></div>
-          </div>
-        </GradHeader>
-        <div style={{display:"flex",gap:8}}>
-          <button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,color:C.ink}} onClick={share}>Share 📤</button>
-          <button style={{flex:1,fontSize:14,fontWeight:800,padding:"14px",borderRadius:100,background:C.green,color:"#fff"}} onClick={refresh}>Check matches</button>
-        </div>
+      <div className="pop"><div style={{fontSize:48,marginBottom:12}}>👋</div><h2 style={{fontSize:28,fontWeight:800,color:C.ink,marginBottom:8}}>Hey, {me.name}!</h2><p style={{fontSize:15,color:C.muted,lineHeight:1.6,marginBottom:24}}>Waitlisted for <strong style={{color:C.ink}}>{me.neighborhood}</strong>. Need 2+ people.</p>
+        <GradHeader gradient={C.grad2} style={{marginBottom:24}}><div style={{display:"flex",justifyContent:"space-around"}}><div style={{textAlign:"center"}}><div style={{fontSize:32,fontWeight:800}}>{hoodWait.length+1}</div><div style={{fontSize:12,opacity:.8}}>In area</div></div><div style={{textAlign:"center"}}><div style={{fontSize:32,fontWeight:800}}>2</div><div style={{fontSize:12,opacity:.8}}>Needed</div></div></div></GradHeader>
+        <div style={{display:"flex",gap:8}}><button style={{flex:1,fontSize:14,fontWeight:700,padding:"14px",borderRadius:100,border:`2px solid ${C.border}`,color:C.ink}} onClick={share}>Share 📤</button><button style={{flex:1,fontSize:14,fontWeight:800,padding:"14px",borderRadius:100,background:C.green,color:"#fff"}} onClick={refresh}>Check</button></div>
       </div>
     </>}
     <Nav/>
@@ -578,46 +380,26 @@ function App(){
   {/* ═══ CIRCLE ═══ */}
   {scr==="circle"&&me&&mc&&<div style={pg}>
     <div style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px",marginBottom:16}}>Circle {mc.name}</div>
-    <div style={{display:"flex",gap:0,marginBottom:24,background:C.white,borderRadius:100,border:`2px solid ${C.border}`,overflow:"hidden"}}>
-      {[["feed","Feed"],["memories","Memories"]].map(([k,l])=><button key={k} style={{flex:1,padding:"12px 0",fontSize:14,fontWeight:tab===k?800:500,color:tab===k?C.green:C.muted,background:tab===k?C.greenPale:"transparent"}} onClick={()=>setTab(k)}>{l}</button>)}
-    </div>
+    <div style={{display:"flex",marginBottom:24,background:C.white,borderRadius:100,border:`2px solid ${C.border}`,overflow:"hidden"}}>{[["feed","Feed"],["memories","Memories"]].map(([k,l])=><button key={k} style={{flex:1,padding:"12px 0",fontSize:14,fontWeight:tab===k?800:500,color:tab===k?C.green:C.muted,background:tab===k?C.greenPale:"transparent"}} onClick={()=>setTab(k)}>{l}</button>)}</div>
     {tab==="feed"&&<div>
-      <div style={{background:C.white,borderRadius:18,padding:"16px",border:`2px solid ${C.border}`,marginBottom:20}}>
-        <textarea style={{minHeight:56,marginBottom:8}} value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Share something..."/>
-        <div style={{display:"flex",justifyContent:"flex-end"}}><button style={{fontSize:13,fontWeight:800,padding:"10px 24px",borderRadius:100,background:C.green,color:"#fff",...(!newPost.trim()?{opacity:.3}:{})}} onClick={doPost}>Post</button></div>
-      </div>
-      {posts.map(p=><div key={p.id} style={{background:C.white,borderRadius:16,padding:"16px",border:`2px solid ${C.border}`,marginBottom:8}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}><Avatar name={p.user_name} size={28}/><span style={{fontSize:13,fontWeight:700,color:C.ink}}>{p.user_name}</span><span style={{fontSize:12,color:C.muted}}>{ago(p.created_at)}</span></div>
-        <div style={{fontSize:14,color:C.ink,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{p.content}</div>
-      </div>)}
-      {posts.length===0&&<div style={{padding:48,textAlign:"center",color:C.muted,fontSize:15}}>Nothing yet 🌱</div>}
+      <div style={{background:C.white,borderRadius:18,padding:"16px",border:`2px solid ${C.border}`,marginBottom:20}}><textarea style={{minHeight:56,marginBottom:8}} value={newPost} onChange={e=>setNewPost(e.target.value)} placeholder="Share something..."/><div style={{display:"flex",justifyContent:"flex-end"}}><button style={{fontSize:13,fontWeight:800,padding:"10px 24px",borderRadius:100,background:C.green,color:"#fff",...(!newPost.trim()?{opacity:.3}:{})}} onClick={doPost}>Post</button></div></div>
+      {posts.map(p=><div key={p.id} style={{background:C.white,borderRadius:16,padding:"16px",border:`2px solid ${C.border}`,marginBottom:8}}><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}><Avatar name={p.user_name} size={28}/><span style={{fontSize:13,fontWeight:700,color:C.ink}}>{p.user_name}</span><span style={{fontSize:12,color:C.muted}}>{ago(p.created_at)}</span></div><div style={{fontSize:14,color:C.ink,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{p.content}</div></div>)}
+      {posts.length===0&&<div style={{padding:48,textAlign:"center"}}><div style={{fontSize:48,marginBottom:12}}>🌱</div><div style={{fontSize:16,fontWeight:700,color:C.ink,marginBottom:4}}>Nothing here yet</div><div style={{fontSize:14,color:C.muted}}>Be the first to share something with your circle</div></div>}
     </div>}
     {tab==="memories"&&<div>
-      <div style={{background:C.white,borderRadius:18,padding:"16px",border:`2px solid ${C.border}`,marginBottom:20}}>
-        <textarea style={{minHeight:56,marginBottom:8}} value={memInput} onChange={e=>setMemInput(e.target.value)} placeholder="A quote, a moment, an inside joke..."/>
-        <div style={{display:"flex",justifyContent:"flex-end"}}><button style={{fontSize:13,fontWeight:800,padding:"10px 24px",borderRadius:100,background:C.brown,color:"#fff",...(!memInput.trim()?{opacity:.3}:{})}} onClick={doMem}>Save</button></div>
-      </div>
-      {memos.map(m=><div key={m.id} style={{background:C.brownPale,borderRadius:16,padding:"16px",marginBottom:8}}>
-        <div style={{fontSize:12,fontWeight:700,color:C.brown}}>Week {m.week} · {m.user_name}</div>
-        <div style={{fontSize:15,color:C.ink,lineHeight:1.6,fontStyle:"italic",marginTop:4}}>"{m.content}"</div>
-      </div>)}
-      {memos.length===0&&<div style={{padding:48,textAlign:"center",color:C.muted}}>No memories yet ✨</div>}
+      <div style={{background:C.white,borderRadius:18,padding:"16px",border:`2px solid ${C.border}`,marginBottom:20}}><textarea style={{minHeight:56,marginBottom:8}} value={memInput} onChange={e=>setMemInput(e.target.value)} placeholder="A quote, a moment, an inside joke..."/><div style={{display:"flex",justifyContent:"flex-end"}}><button style={{fontSize:13,fontWeight:800,padding:"10px 24px",borderRadius:100,background:C.brown,color:"#fff",...(!memInput.trim()?{opacity:.3}:{})}} onClick={doMem}>Save</button></div></div>
+      {memos.map(m=><div key={m.id} style={{background:C.brownPale,borderRadius:16,padding:"16px",marginBottom:8}}><div style={{fontSize:12,fontWeight:700,color:C.brown}}>Week {m.week} · {m.user_name}</div><div style={{fontSize:15,color:C.ink,lineHeight:1.6,fontStyle:"italic",marginTop:4}}>"{m.content}"</div></div>)}
+      {memos.length===0&&<div style={{padding:48,textAlign:"center"}}><div style={{fontSize:48,marginBottom:12}}>✨</div><div style={{fontSize:16,fontWeight:700,color:C.ink,marginBottom:4}}>No memories yet</div><div style={{fontSize:14,color:C.muted}}>After your first night together, capture what mattered</div></div>}
     </div>}
     <Nav/>
   </div>}
 
   {/* ═══ RITUALS ═══ */}
   {scr==="ritual"&&me&&mc&&<div style={pg}>
-    <div style={{fontSize:13,fontWeight:800,color:C.muted,textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>The 8-week journey</div>
     <h2 style={{fontSize:24,fontWeight:800,color:C.ink,marginBottom:20}}>Rituals 🕯️</h2>
     {RITUALS.map((r,i)=>{const done=season&&season[i]?.past;const cur=cw?.week===r.w;const going=myR.has(r.w);
       return<div key={i} style={{background:cur?C.greenPale:C.white,borderRadius:18,padding:"18px 20px",border:`2px solid ${cur?C.green:C.border}`,marginBottom:10,opacity:done&&!cur?.5:1}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontSize:12,fontWeight:800,color:cur?C.green:C.muted,textTransform:"uppercase",letterSpacing:"1px"}}>Week {r.w}{cur?" · Now":""}</div>
-            <div style={{fontSize:16,fontWeight:700,color:C.ink,marginTop:4}}>{r.t}</div>
-            <div style={{fontSize:14,color:C.text,lineHeight:1.6,marginTop:4,fontStyle:"italic"}}>{r.p}</div>
-          </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:800,color:cur?C.green:C.muted,textTransform:"uppercase",letterSpacing:"1px"}}>Week {r.w}{cur?" · Now":""}</div><div style={{fontSize:16,fontWeight:700,color:C.ink,marginTop:4}}>{r.t}</div><div style={{fontSize:14,color:C.text,lineHeight:1.6,marginTop:4,fontStyle:"italic"}}>{r.p}</div></div>
           {season&&!season[i]?.past&&<button style={{fontSize:12,fontWeight:800,padding:"8px 18px",borderRadius:100,background:going?C.green:C.white,color:going?"#fff":C.green,border:`2px solid ${C.green}`,flexShrink:0,marginLeft:12}} onClick={()=>doRsvp(r.w)}>{going?"Going ✓":"RSVP"}</button>}
         </div>
       </div>;
@@ -627,35 +409,22 @@ function App(){
 
   {/* ═══ ASK/OFFER ═══ */}
   {scr==="ask"&&me&&mc&&<div style={pg}>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-      <h2 style={{fontSize:24,fontWeight:800,color:C.ink}}>Ask & Offer 🤝</h2>
-      <button style={{fontSize:13,fontWeight:800,padding:"10px 20px",borderRadius:100,background:C.green,color:"#fff"}} onClick={()=>setShowAsk(!showAsk)}>{showAsk?"Cancel":"+ New"}</button>
-    </div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}><h2 style={{fontSize:24,fontWeight:800,color:C.ink}}>Ask & Offer 🤝</h2><button style={{fontSize:13,fontWeight:800,padding:"10px 20px",borderRadius:100,background:C.green,color:"#fff"}} onClick={()=>setShowAsk(!showAsk)}>{showAsk?"Cancel":"+ New"}</button></div>
     {showAsk&&<div style={{background:C.white,borderRadius:18,padding:"20px",border:`2px solid ${C.border}`,marginBottom:20,animation:"popIn .3s ease"}}>
-      <div style={{display:"flex",gap:8,marginBottom:16}}>
-        <button style={{flex:1,padding:"12px",borderRadius:100,fontSize:14,fontWeight:askForm.ask_type==="need"?800:500,background:askForm.ask_type==="need"?C.coralPale:C.white,color:askForm.ask_type==="need"?C.coral:C.muted,border:`2px solid ${askForm.ask_type==="need"?C.coral:C.border}`}} onClick={()=>setAskForm(f=>({...f,ask_type:"need"}))}>I need...</button>
-        <button style={{flex:1,padding:"12px",borderRadius:100,fontSize:14,fontWeight:askForm.ask_type==="offer"?800:500,background:askForm.ask_type==="offer"?C.greenPale:C.white,color:askForm.ask_type==="offer"?C.green:C.muted,border:`2px solid ${askForm.ask_type==="offer"?C.green:C.border}`}} onClick={()=>setAskForm(f=>({...f,ask_type:"offer"}))}>I can help...</button>
-      </div>
+      <div style={{display:"flex",gap:8,marginBottom:16}}><button style={{flex:1,padding:"12px",borderRadius:100,fontSize:14,fontWeight:askForm.ask_type==="need"?800:500,background:askForm.ask_type==="need"?C.coralPale:C.white,color:askForm.ask_type==="need"?C.coral:C.muted,border:`2px solid ${askForm.ask_type==="need"?C.coral:C.border}`}} onClick={()=>setAskForm(f=>({...f,ask_type:"need"}))}>I need...</button><button style={{flex:1,padding:"12px",borderRadius:100,fontSize:14,fontWeight:askForm.ask_type==="offer"?800:500,background:askForm.ask_type==="offer"?C.greenPale:C.white,color:askForm.ask_type==="offer"?C.green:C.muted,border:`2px solid ${askForm.ask_type==="offer"?C.green:C.border}`}} onClick={()=>setAskForm(f=>({...f,ask_type:"offer"}))}>I can help...</button></div>
       <select style={{marginBottom:12}} value={askForm.category} onChange={e=>setAskForm(f=>({...f,category:e.target.value}))}>{ASK_CATS.map(c=><option key={c} value={c}>{c}</option>)}</select>
       <textarea style={{minHeight:64,marginBottom:12}} value={askForm.content} onChange={e=>setAskForm(f=>({...f,content:e.target.value}))} placeholder={askForm.ask_type==="need"?"What do you need?":"What can you offer?"}/>
       <button style={{fontSize:14,fontWeight:800,padding:"14px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(!askForm.content.trim()?{opacity:.3}:{})}} onClick={doAsk}>Post</button>
     </div>}
-    {asks.filter(a=>!a.resolved).map(a=><div key={a.id} style={{background:a.ask_type==="need"?C.coralPale:C.greenPale,borderRadius:16,padding:"16px",marginBottom:8}}>
-      <div style={{fontSize:12,fontWeight:800,color:a.ask_type==="need"?C.coral:C.green,textTransform:"uppercase",letterSpacing:"1px"}}>{a.ask_type==="need"?"Needs":"Offering"} · {a.category}</div>
-      <div style={{fontSize:15,color:C.ink,lineHeight:1.5,marginTop:6}}>{a.content}</div>
-      <div style={{fontSize:12,color:C.muted,marginTop:6}}>{a.user_name} · {ago(a.created_at)}</div>
-    </div>)}
-    {asks.length===0&&!showAsk&&<div style={{padding:48,textAlign:"center",color:C.muted}}>Nothing yet. "Need a gym buddy" · "Can help with resumes" 💪</div>}
+    {asks.filter(a=>!a.resolved).map(a=><div key={a.id} style={{background:a.ask_type==="need"?C.coralPale:C.greenPale,borderRadius:16,padding:"16px",marginBottom:8}}><div style={{fontSize:12,fontWeight:800,color:a.ask_type==="need"?C.coral:C.green,textTransform:"uppercase",letterSpacing:"1px"}}>{a.ask_type==="need"?"Needs":"Offering"} · {a.category}</div><div style={{fontSize:15,color:C.ink,lineHeight:1.5,marginTop:6}}>{a.content}</div><div style={{fontSize:12,color:C.muted,marginTop:6}}>{a.user_name} · {ago(a.created_at)}</div></div>)}
+    {asks.length===0&&!showAsk&&<div style={{padding:48,textAlign:"center"}}><div style={{fontSize:48,marginBottom:12}}>💪</div><div style={{fontSize:16,fontWeight:700,color:C.ink,marginBottom:4}}>Community starts here</div><div style={{fontSize:14,color:C.muted}}>"Need a gym buddy" · "Can help with resumes"</div></div>}
     <Nav/>
   </div>}
 
   {/* ═══ EXPLORE ═══ */}
   {scr==="explore"&&<div style={pg}>
     <h2 style={{fontSize:24,fontWeight:800,color:C.ink,marginBottom:20}}>Neighborhoods 🗺️</h2>
-    {(()=>{const st={};users.forEach(u=>{if(u.neighborhood)st[u.neighborhood]=(st[u.neighborhood]||0)+1;});return Object.entries(st).sort((a,b)=>b[1]-a[1]).map(([h,ct])=>{const cc=cohorts.filter(c=>c.hood===h).length;return<div key={h} style={{background:C.white,borderRadius:16,padding:"16px 20px",border:`2px solid ${C.border}`,marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-      <div><div style={{fontSize:15,fontWeight:700,color:C.ink}}>{h}</div>{cc>0&&<div style={{fontSize:12,fontWeight:700,color:C.green,marginTop:2}}>{pl(cc,"circle")} ✦</div>}</div>
-      <div style={{fontSize:14,fontWeight:800,color:C.muted}}>{ct}</div>
-    </div>;});})()}
+    {(()=>{const st={};users.forEach(u=>{if(u.neighborhood)st[u.neighborhood]=(st[u.neighborhood]||0)+1;});const entries=Object.entries(st).sort((a,b)=>b[1]-a[1]);if(!entries.length)return<div style={{padding:48,textAlign:"center",color:C.muted}}>No signups yet. Be the first!</div>;return entries.map(([h,ct])=>{const cc=cohorts.filter(c=>c.hood===h).length;return<div key={h} style={{background:C.white,borderRadius:16,padding:"16px 20px",border:`2px solid ${C.border}`,marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontSize:15,fontWeight:700,color:C.ink}}>{h}</div>{cc>0&&<div style={{fontSize:12,fontWeight:700,color:C.green,marginTop:2}}>{pl(cc,"circle")} ✦</div>}</div><div style={{fontSize:14,fontWeight:800,color:C.muted}}>{ct}</div></div>;});})()}
     <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",marginTop:16}} onClick={()=>go(me?"home":"signup")}>{me?"Back":"Join"}</button>
     {me&&<Nav/>}
   </div>}
@@ -668,7 +437,7 @@ function App(){
     <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Interests</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{INTERESTS.map(x=><Pill key={x} on={form.interests.includes(x)} onClick={()=>tog("interests",x,5)} style={{fontSize:12,padding:"6px 14px"}}>{x}</Pill>)}</div></div>
     <div style={{marginBottom:16}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Nights</div><div style={{display:"flex",gap:6}}>{NIGHTS.map(x=><Pill key={x} on={form.nights.includes(x)} onClick={()=>tog("nights",x)} style={{flex:1,textAlign:"center",fontSize:12,padding:"8px"}}>{x}</Pill>)}</div></div>
     <div style={{display:"flex",gap:12,marginBottom:16}}><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Instagram</div><input value={form.instagram} onChange={e=>sF("instagram",e.target.value)}/></div><div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"1px"}}>Beli</div><input value={form.beli} onChange={e=>sF("beli",e.target.value)}/></div></div>
-    <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(saving?{opacity:.3}:{})}} onClick={async()=>{setSaving(true);const u={...me,name:form.name.trim()||me.name,bio:form.bio.trim(),interests:form.interests.length?form.interests:me.interests,nights:form.nights.length?form.nights:me.nights,instagram:form.instagram.trim(),beli:form.beli.trim()};const ok=await DB.put("users",u);if(ok){DB.setMid(u.id);setMe(u);flash("✅ Saved!");}else flash("❌ Save failed");setSaving(false);go("home");}}>{saving?"Saving...":"Save changes"}</button>
+    <button style={{fontSize:16,fontWeight:800,padding:"16px",borderRadius:100,background:C.green,color:"#fff",width:"100%",...(saving?{opacity:.3}:{})}} onClick={async()=>{setSaving(true);const u={...me,name:form.name.trim()||me.name,bio:form.bio.trim(),interests:form.interests.length?form.interests:me.interests,nights:form.nights.length?form.nights:me.nights,instagram:form.instagram.trim(),beli:form.beli.trim()};if(await DB.put("users",u)){DB.setMid(u.id);setMe(u);flash("✅ Saved!");}else flash("❌ Failed");setSaving(false);go("home");}}>{saving?"Saving...":"Save changes"}</button>
     <div style={{textAlign:"center",marginTop:24}}><button style={{fontSize:14,color:C.coral,fontWeight:700}} onClick={logout}>Log out</button></div>
     <Nav/>
   </div>}
